@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   into a playlist.
 - `hash_files.py` skips symlinks, writes evidence atomically and only after the catalog, and
   reports evidence captured for a different file instead of leaving it silently.
+- The list of wording I never publish moved to a local, gitignored file, like my node names.
 - Credits with the same artist and title now sort by id, so the output is stable.
 
 - `validate.py` no longer accepts an id with a trailing newline, and reports a `sources.csv`

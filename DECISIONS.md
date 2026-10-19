@@ -17,9 +17,9 @@ paths) live in my private notes, never here.
 
 ## Known limits of the public-repo checks
 
-- **Node names are checked on my machine only.** They come from `.infra-names`, which is
-  gitignored so the list never lands here. CI has no copy, so CI runs every other check but not
-  that one. I turned down a hashed list in the repo: a short node name falls to a dictionary
+- **Node names and my blocked wording are checked on my machine only.** They come from
+  `.infra-names` and `.blocked-words`, which are gitignored so the lists never land here. CI has
+  no copy, so CI runs every other check but not those two. I turned down a hashed list in the repo: a short node name falls to a dictionary
   attack against its hash, which would publish the very name it protects. A repo secret would
   work but adds a secret to a repo that has none, so the commit and push hooks carry this check.
 - **Binary files are blocked outright** instead of scanned, since the text checks can't read
