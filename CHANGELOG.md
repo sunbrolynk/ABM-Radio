@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- A README with the AudioBook Manager branding, plus from-scratch guides for the server
+  (`docs/server-setup.md`) and the website side (`docs/website.md`).
+
 - Spoken-word sources for Story Time (LibriVox, the Escape Artists shows, public-domain Internet
   Archive audio), with CC BY-NC-ND 4.0 accepted on the `storytime` station only.
 

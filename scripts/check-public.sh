@@ -63,8 +63,9 @@ case "${1:-}" in
     "")
         search() { git grep --cached -nI "$@"; }
         scan
-        # Third-party data (titles, attribution lines) and the GPL text are not my writing.
-        search() { git grep --cached -nI "$@" -- . ':!LICENSE' ':!catalog/' ':!evidence/'; }
+        # Third-party data (titles, attribution lines), the GPL text and the logo artwork (an SVG
+        # with an embedded image) are not my writing.
+        search() { git grep --cached -nI "$@" -- . ':!LICENSE' ':!catalog/' ':!evidence/' ':!docs/readme/*.svg'; }
         voice_check
         # git grep -I skips binary files, so nothing above can see inside them; this repo has no use for any.
         binaries="$(comm -23 <(git grep --cached -l -e '' | sort) <(git grep --cached -I -l -e '' | sort))"
