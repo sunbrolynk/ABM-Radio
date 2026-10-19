@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - `validate.py`, which checks `catalog/tracks.csv` and the licence evidence before anything
   can go on air.
+- `hash_files.py`, `export_credits.py` and `export_playlist.py`, which fill in each file's hash
+  and write the credits and per-station playlists from approved tracks only.
 - Commit and push hooks that block secrets, home-network details and broken catalogs.
 - The public-repo check also blocks link-local and IPv6 private addresses, Tailscale and other
   LAN hostnames, dotless hosts after any URL scheme, LAN and home-folder paths, binary files, and
