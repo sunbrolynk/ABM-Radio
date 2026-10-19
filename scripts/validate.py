@@ -11,6 +11,8 @@ from catalog import COLUMNS, EVIDENCE, SOURCES, TRACKS, read_csv
 LICENSE_RE = re.compile(r"^(CC0-1\.0|PD|CC-BY(-SA)?-(2\.0|2\.5|3\.0|4\.0)|SITE:[a-z0-9-]+)$")
 # The id becomes a file name, so keep it to plain lowercase words joined by dashes.
 ID_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+# A plain <id>.<ext> file name: no paths, and no control characters to break an M3U line.
+FILE_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*\.[a-z0-9]+$")
 SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 STATUSES = {"pending", "approved", "rejected"}
 EVIDENCE_KEYS = {"id", "source_url", "license", "license_text_quote", "archived_url", "captured_at", "file_sha256"}
@@ -47,8 +49,8 @@ def validate(tracks: Path = TRACKS, sources: Path = SOURCES, evidence: Path = EV
         for c in ("commercial_ok", "streaming_ok"):
             if r[c] not in ("yes", "no"):
                 err(f"{c} must be yes or no")
-        if r["file_name"] and not r["file_name"].startswith(tid + "."):
-            err("file_name must be <id>.<ext>")
+        if r["file_name"] and not (FILE_RE.fullmatch(r["file_name"]) and r["file_name"].startswith(tid + ".")):
+            err("file_name must be <id>.<ext>, lowercase, with no path")
         if any(not ID_RE.fullmatch(p) for p in r["playlists"].split(";") if p):
             err("playlists must be lowercase-dashed names separated by ;")
         if r["sha256"] and not SHA_RE.fullmatch(r["sha256"]):

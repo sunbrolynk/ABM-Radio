@@ -19,6 +19,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- A `file_name` must be a plain lowercase `<id>.<ext>`, so it can't carry a path or inject a line
+  into a playlist.
+- `hash_files.py` skips symlinks, writes evidence atomically and only after the catalog, and
+  reports evidence captured for a different file instead of leaving it silently.
+- Credits with the same artist and title now sort by id, so the output is stable.
+
 - `validate.py` no longer accepts an id with a trailing newline, and reports a `sources.csv`
   without a `key` column instead of crashing.
 - `install-hooks.sh` now updates its own hooks after they change, instead of refusing.
