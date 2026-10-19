@@ -1,0 +1,19 @@
+version: 2
+
+# No groups: every outdated package gets its own PR, reviewed and merged on its own.
+# The scripts are stdlib-only; add a pip entry here if that ever changes.
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: America/Denver
+    cooldown:
+      default-days: 14
+    open-pull-requests-limit: 20
+    commit-message:
+      prefix: "ci"

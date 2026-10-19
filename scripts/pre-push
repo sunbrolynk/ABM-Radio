@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+head_sha="$(git rev-parse HEAD)"
+pushing_code=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    if [[ "$local_sha" =~ ^0+$ ]]; then
+        continue
+    fi
+    pushing_code=1
+    if [[ "$local_sha" != "$head_sha" ]]; then
+        echo "Push blocked: check out the branch being pushed so its files are tested." >&2
+        exit 1
+    fi
+done
+
+if [[ "$pushing_code" == 0 ]]; then
+    exit 0
+fi
+
+if [[ -n "$(git status --porcelain)" ]]; then
+    echo "Push blocked: commit or stash pending changes before validation." >&2
+    git status --short
+    exit 1
+fi
+
+echo "Checking Git history for secrets..."
+bash scripts/check-secrets.sh
+
+echo "Checking Git history is fit for a public repo..."
+bash scripts/check-public.sh --history
+
+echo "Checking every script change has a changelog entry..."
+bash scripts/check-changelog.sh
+
+echo "Running the script tests..."
+python3 -m unittest discover -s tests
+
+echo "Validating the catalog..."
+python3 scripts/validate.py
+
+if [[ "$(git rev-parse HEAD)" != "$head_sha" || -n "$(git status --porcelain)" ]]; then
+    echo "Push blocked: repository changed during validation. Review and retry." >&2
+    exit 1
+fi
+
+echo "Local validation passed; allowing push."
