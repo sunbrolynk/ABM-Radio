@@ -1,0 +1,39 @@
+name: Checks
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main", "dev"]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Secret Scan, Public Check, Tests & Catalog
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Scan Git history for secrets with gitleaks
+        run: bash scripts/check-secrets.sh
+
+      - name: Check the files and history are fit for a public repo
+        run: |
+          bash scripts/check-public.sh
+          bash scripts/check-public.sh --history
+
+      - name: Check every script change has a changelog entry
+        if: github.event_name == 'pull_request'
+        run: bash scripts/check-changelog.sh "origin/${GITHUB_BASE_REF}..HEAD"
+
+      - name: Run the script tests
+        run: python3 -m unittest discover -s tests
+
+      - name: Validate the catalog
+        run: python3 scripts/validate.py
