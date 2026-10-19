@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Spoken-word sources for Story Time (LibriVox, the Escape Artists shows, public-domain Internet
+  Archive audio), with CC BY-NC-ND 4.0 accepted on the `storytime` station only.
+
 - `validate.py`, which checks `catalog/tracks.csv` and the licence evidence before anything
   can go on air.
 - `hash_files.py`, `export_credits.py` and `export_playlist.py`, which fill in each file's hash

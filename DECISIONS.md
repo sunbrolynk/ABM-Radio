@@ -35,6 +35,25 @@ paths) live in my private notes, never here.
   checksums.
 - **Rejected:** skipping the scan where Docker is missing.
 
+## Spoken word (for Story Time, after the lofi station)
+
+- **Commercial audiobooks are never aired,** bought or not. A personal licence doesn't include
+  public performance, being non-commercial doesn't change that, and removing the DRM to get the
+  audio out is its own problem.
+- **CC BY-NC-ND 4.0 is accepted for spoken word** while the station stays non-commercial and
+  plays every item whole and unedited, with credit. The validator allows it only on the
+  `storytime` station and only with `commercial_ok=no`. Music under NC or ND is still undecided
+  (below).
+- **The Escape Artists shows are checked per episode,** because older episodes were released
+  under CC BY-NC-ND 3.0 and Pseudopod's about page states no licence at all. I take only episodes
+  whose own page says 4.0. Accepting 3.0 is a separate decision.
+- **Internet Archive items are checked one by one.** The uploader sets the rights, not the
+  Archive, and many uploads aren't public domain.
+- **Fan fiction only with the fan author's written permission,** and even then it can be pulled
+  by the original rights holder, so it isn't something I seek out.
+- **Indie authors need written permission** (an email is enough), stored as evidence like any
+  licence. How a permission is recorded in `tracks.csv` gets decided with the first one.
+
 ## To do
 
 - **M3U entries are bare file names** that AzuraCast matches on import. That's fine while every

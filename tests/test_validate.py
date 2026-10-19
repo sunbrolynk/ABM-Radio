@@ -70,6 +70,15 @@ class ValidateTest(unittest.TestCase):
     def test_unaccepted_licence_fails(self) -> None:
         self.assertFails(self.run_validate(track(status="pending", license="CC-BY-NC-4.0")), "accepted list")
 
+    def test_spoken_word_may_use_nc_nd_on_storytime_only(self) -> None:
+        story = track(station="storytime", status="pending", license="CC-BY-NC-ND-4.0", commercial_ok="no")
+        self.assertEqual(self.run_validate(story), [])
+        self.assertFails(self.run_validate(track(status="pending", license="CC-BY-NC-ND-4.0", commercial_ok="no")), "accepted list")
+
+    def test_non_commercial_licence_needs_commercial_ok_no(self) -> None:
+        story = track(station="storytime", status="pending", license="CC-BY-NC-ND-4.0", commercial_ok="yes")
+        self.assertFails(self.run_validate(story), "commercial_ok=no")
+
     def test_rejected_row_may_carry_any_licence(self) -> None:
         self.assertEqual(self.run_validate(track(status="rejected", license="CC-BY-NC-4.0")), [])
 
