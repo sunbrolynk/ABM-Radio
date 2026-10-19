@@ -9,14 +9,16 @@ if git config --get core.hooksPath >/dev/null; then
     exit 1
 fi
 
-# Check both hooks before writing either, so a refusal leaves the existing hooks as they were.
+marker="# abm-radio hook:"
+
+# Check all three hooks before writing any, so a refusal leaves the existing hooks as they were.
+# A hook carrying the marker is one of mine (maybe an older version) and gets replaced; anything
+# else is someone else's hook and needs a look first.
 for name in pre-commit commit-msg pre-push; do
     hook="$(git rev-parse --path-format=absolute --git-path "hooks/$name")"
-    if [[ -e "$hook" || -L "$hook" ]]; then
-        if [[ -L "$hook" ]] || ! cmp -s "scripts/$name" "$hook"; then
-            echo "An existing, different $name hook needs manual review: $hook" >&2
-            exit 1
-        fi
+    if [[ -L "$hook" ]] || { [[ -e "$hook" ]] && ! grep -qF "$marker" "$hook"; }; then
+        echo "An existing $name hook that isn't from this repo needs manual review: $hook" >&2
+        exit 1
     fi
 done
 for name in pre-commit commit-msg pre-push; do

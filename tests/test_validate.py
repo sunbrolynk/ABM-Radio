@@ -34,7 +34,7 @@ class ValidateTest(unittest.TestCase):
         self.tracks = self.dir / "tracks.csv"
         self.evidence = self.dir / "evidence"
         self.evidence.mkdir()
-        (self.dir / "sources.csv").write_text("key,name,url,license_terms_url,notes\nfma,FMA,https://x,,\n")
+        (self.dir / "sources.csv").write_text("key,name,url,license_terms_url,notes\nfma,FMA,https://example.org,,\n")
 
     def run_validate(self, *rows: dict[str, str], evidence: dict[str, str] | None = None) -> list[str]:
         write_tracks(list(rows), self.tracks)
@@ -94,6 +94,13 @@ class ValidateTest(unittest.TestCase):
         errors = self.run_validate(track(id="../x", station="Lo Fi", status="pending"))
         self.assertFails(errors, "id must be")
         self.assertFails(errors, "station must be")
+
+    def test_id_with_trailing_newline_fails(self) -> None:
+        self.assertFails(self.run_validate(track(id="fma-0001\n", status="pending")), "id must be")
+
+    def test_sources_without_key_column_fails_cleanly(self) -> None:
+        (self.dir / "sources.csv").write_text("name,url\nFMA,https://example.org\n")
+        self.assertFails(self.run_validate(track(status="pending")), "key column")
 
     def test_unknown_source_fails(self) -> None:
         self.assertFails(self.run_validate(track(status="pending", source="nowhere")), "sources.csv")

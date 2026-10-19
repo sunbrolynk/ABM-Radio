@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# abm-radio hook: installed and kept up to date by scripts/install-hooks.sh
 # Blocks a commit message with home-network details or writing that is not in my voice (see check-public.sh).
 set -euo pipefail
 
