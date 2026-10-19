@@ -86,16 +86,20 @@ class CheckPublicTest(unittest.TestCase):
         (self.repo / ".gitignore").write_text(".infra-names\n")
         self.assertBlocked("runs on tardis\n", ".infra-names")
 
-    def test_voice_and_markers_are_blocked(self) -> None:
-        self.assertBlocked("W" + "e built this\n", "voice")
-        self.assertBlocked("Co-Authored" + "-By: someone\n", "voice")
+    def test_voice_is_blocked(self) -> None:
+        self.assertBlocked("W" + "e built this\n", "isn't mine")
+
+    def test_local_word_list_is_blocked(self) -> None:
+        (self.repo / ".blocked-words").write_text("zebra-?crossing\n")
+        (self.repo / ".gitignore").write_text(".blocked-words\n")
+        self.assertBlocked("a Zebra-Crossing line\n", ".blocked-words")
 
     def test_binary_files_are_blocked(self) -> None:
         self.assertBlocked(b"\x00\x01binary", "binary", name="cover.bin")
 
     def test_commit_message_is_checked(self) -> None:
         msg = self.repo / "msg"
-        msg.write_text("add tracks\n\nGenerated " + "with a tool\n")
+        msg.write_text("add tracks\n\nW" + "e did this\n")
         result = self.check("--msg", str(msg))
         self.assertEqual(result.returncode, 1)
 

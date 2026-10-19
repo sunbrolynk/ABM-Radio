@@ -7,15 +7,17 @@
 #        check-public.sh --msg FILE  scan a commit message (commit-msg)
 #        check-public.sh --history   scan every commit, message and identity on every ref (pre-push, CI)
 #
-# Node names come from .infra-names (one per line, gitignored), so the list itself never lands
-# here. CI has no copy, so it runs every check except that one (see DECISIONS.md).
+# Two lists stay on my machine (gitignored), so neither ever lands here: .infra-names holds my
+# node names (one per line, plain text) and .blocked-words holds wording I never publish (one
+# extended regex per line). CI has no copy of either, so it runs every other check (see DECISIONS.md).
 #
 # The patterns are written so they never match their own source, which lets this file scan
-# itself like any other: [x] brackets and the byte-built emoji keep the literal words out.
+# itself like any other: [x] brackets keep the literal words out.
 set -euo pipefail
 
 repo_root="$(git rev-parse --show-toplevel)"
 names="$repo_root/.infra-names"
+words="$repo_root/.blocked-words"
 
 octet='[0-9]{1,3}'
 ip="(10\.$octet|192\.168|172\.(1[6-9]|2[0-9]|3[01])|100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])|169\.254)\.$octet\.$octet"
@@ -25,7 +27,6 @@ host='[a-z0-9-]+\.(local|localdomain|lan|home|home\.arpa|internal|corp|ts\.net)(
 bare_url='[a-z]+://([^/@ ]*@)?[a-z0-9-]{2,}([^a-z0-9.@-]|$)'
 lan_path='(^|[^a-z0-9_.~-])/(mnt|srv|media|home|Users)/|\\\\[a-z0-9.-]+\\|[a-z]:\\U[s]ers\\'
 voice="(^|[^a-z'])(w[e]|w[e]'re|w[e]'ve|w[e]'ll|o[u]r|o[u]rs|o[u]rselves)([^a-z']|$)"
-marker="co-authored-b[y]|cl[a]ude|anthrop[i]c|generated wit[h]|$(printf '\xf0\x9f\xa4\x96')"
 
 found=0
 hit() { echo "Blocked ($1):" >&2; sed 's/^/    /' >&2; found=1; }
@@ -38,13 +39,18 @@ scan() {
     check "LAN or home path" -iE -e "$lan_path"
     if [[ -s "$names" ]]; then check "node name from .infra-names" -iwF -f "$names"; fi
 }
+# Writing that isn't mine: first-person plural, plus anything on my local word list.
+voice_check() {
+    check "writing that isn't mine" -iE -e "$voice"
+    if [[ -s "$words" ]]; then check "wording from .blocked-words" -iE -f "$words"; fi
+}
 
 case "${1:-}" in
     --msg)
         msg="$(grep -v '^#' "$2" || true)"
         search() { grep -n "$@" <<< "$msg"; }
         scan
-        check "voice or AI marker in the commit message" -iE -e "$voice" -e "$marker"
+        voice_check
         ;;
     --history)
         history="$(git log --all -p --format='commit %H%n%B')"
@@ -59,7 +65,7 @@ case "${1:-}" in
         scan
         # Third-party data (titles, attribution lines) and the GPL text are not my writing.
         search() { git grep --cached -nI "$@" -- . ':!LICENSE' ':!catalog/' ':!evidence/'; }
-        check "voice or AI marker" -iE -e "$voice" -e "$marker"
+        voice_check
         # git grep -I skips binary files, so nothing above can see inside them; this repo has no use for any.
         binaries="$(comm -23 <(git grep --cached -l -e '' | sort) <(git grep --cached -I -l -e '' | sort))"
         [[ -z "$binaries" ]] || hit "binary file (the text checks can't read it)" <<< "$binaries"
