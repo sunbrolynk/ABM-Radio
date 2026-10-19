@@ -11,8 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `validate.py`, which checks `catalog/tracks.csv` and the licence evidence before anything
   can go on air.
 - Commit and push hooks that block secrets, home-network details and broken catalogs.
-- The public-repo check also blocks link-local and IPv6 private addresses, Tailscale and bare-host
-  URLs, LAN paths, binary files, and commit emails that aren't GitHub no-reply addresses.
+- The public-repo check also blocks link-local and IPv6 private addresses, Tailscale and other
+  LAN hostnames, dotless hosts after any URL scheme, LAN and home-folder paths, binary files, and
+  commit emails that aren't GitHub no-reply addresses.
 
 ### Fixed
 

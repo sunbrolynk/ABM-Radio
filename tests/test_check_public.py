@@ -47,19 +47,39 @@ class CheckPublicTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_private_addresses_are_blocked(self) -> None:
-        for addr in ("192." + "168.1.20", "10." + "0.0.5", "172." + "20.1.1", "100." + "100.1.1", "169." + "254.3.4", "fd" + "12:3456::1"):
+        for addr in ("192." + "168.1.20", "10." + "0.0.5", "172." + "20.1.1", "100." + "100.1.1", "169." + "254.3.4", "fd" + "12:3456::1", "fe" + "80::1"):
             with self.subTest(addr=addr):
                 self.assertBlocked(f"box at {addr}\n", "IP")
 
-    def test_lan_hostnames_and_urls_are_blocked(self) -> None:
-        for text in ("nas" + ".lan", "box" + ".local", "node.tail1234" + ".ts.net", "http" + "://radiobox:8000/admin"):
-            with self.subTest(text=text):
-                self.assertBlocked(f"see {text}\n", "hostname")
+    def test_lan_hostnames_are_blocked(self) -> None:
+        for host, suffix in (("nas", "lan"), ("box", "local"), ("box", "localdomain"), ("nas", "home"), ("dc", "corp"), ("node.tail1234", "ts.net")):
+            with self.subTest(suffix=suffix):
+                self.assertBlocked(f"see {host}.{suffix}\n", "hostname")
 
-    def test_lan_paths_are_blocked(self) -> None:
-        for text in ("/" + "mnt/music", "/" + "srv/radio", "\\\\" + "nas\\share"):
+    def test_bare_host_urls_are_blocked(self) -> None:
+        scheme = "http" + "://"
+        for text in (
+            f"see {scheme}radiobox",
+            f"({scheme}radiobox)",
+            f'"{scheme}radiobox"',
+            f"{scheme}radiobox?x=1",
+            f"{scheme}radiobox#frag",
+            f"{scheme}radiobox:8000/admin",
+            f"{scheme}user@nas/",
+            "ssh" + "://nas/x",
+            "smb" + "://nas/share",
+        ):
             with self.subTest(text=text):
-                self.assertBlocked(f"media lives in {text}\n", "LAN path")
+                self.assertBlocked(text + "\n", "hostname")
+
+    def test_public_dotted_urls_pass(self) -> None:
+        result = self.staged("https" + "://radio.audiobookmanager.com/lofi and ssh" + "://git@github.com/x\n")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_lan_and_home_paths_are_blocked(self) -> None:
+        for text in ("/" + "mnt/music", "/" + "srv/radio", "/" + "home/shane/music", "/" + "Users/shane", "\\\\" + "nas\\share", "C:" + "\\" + "Users" + "\\" + "shane"):
+            with self.subTest(text=text):
+                self.assertBlocked(f"media lives in {text}\n", "home path")
 
     def test_node_names_are_blocked(self) -> None:
         (self.repo / ".infra-names").write_text("tardis\n")

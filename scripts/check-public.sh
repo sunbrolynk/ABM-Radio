@@ -19,10 +19,11 @@ names="$repo_root/.infra-names"
 
 octet='[0-9]{1,3}'
 ip="(10\.$octet|192\.168|172\.(1[6-9]|2[0-9]|3[01])|100\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])|169\.254)\.$octet\.$octet"
-ula='(^|[^0-9a-f:])f[cd][0-9a-f]{2}:[0-9a-f]{0,4}:'
-host='[a-z0-9-]+\.(local|lan|home\.arpa|internal|ts\.net)([^a-z0-9-]|$)'
-bare_url='https?://[a-z0-9-]+(:[0-9]+|/)'
-lan_path='(^|[^a-z0-9_.~-])/(mnt|srv|media)/|\\\\[a-z0-9.-]+\\'
+ula='(^|[^0-9a-f:])(f[cd][0-9a-f]{2}|fe[89ab][0-9a-f]):[0-9a-f]{0,4}:'
+host='[a-z0-9-]+\.(local|localdomain|lan|home|home\.arpa|internal|corp|ts\.net)([^a-z0-9-]|$)'
+# A dotless host after any scheme. Two characters minimum: #1's public history has https://x placeholders.
+bare_url='[a-z]+://([^/@ ]*@)?[a-z0-9-]{2,}([^a-z0-9.@-]|$)'
+lan_path='(^|[^a-z0-9_.~-])/(mnt|srv|media|home|Users)/|\\\\[a-z0-9.-]+\\|[a-z]:\\U[s]ers\\'
 voice="(^|[^a-z'])(w[e]|w[e]'re|w[e]'ve|w[e]'ll|o[u]r|o[u]rs|o[u]rselves)([^a-z']|$)"
 marker="co-authored-b[y]|cl[a]ude|anthrop[i]c|generated wit[h]|$(printf '\xf0\x9f\xa4\x96')"
 
@@ -34,7 +35,7 @@ check() { local out; out="$(search "${@:2}" || true)"; [[ -z "$out" ]] || hit "$
 scan() {
     check "private or link-local IP" -iE -e "$ip" -e "$ula"
     check "home-network hostname" -iE -e "$host" -e "$bare_url"
-    check "LAN path" -iE -e "$lan_path"
+    check "LAN or home path" -iE -e "$lan_path"
     if [[ -s "$names" ]]; then check "node name from .infra-names" -iwF -f "$names"; fi
 }
 
