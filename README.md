@@ -15,6 +15,11 @@ repo: the files live on the station's own storage.
 - `evidence/<id>.json`: the licence evidence for each track (archived source page, the exact
   sentence that grants use, and the file's sha256).
 - `scripts/validate.py`: checks the catalog. It runs on every commit and push, and in CI.
+- `scripts/hash_files.py <media folder>`: writes each file's sha256 into the catalog and fills an
+  empty one in its evidence. It never changes the hash of an approved track.
+- `scripts/export_credits.py` and `scripts/export_playlist.py`: write `out/credits.json` for the
+  site and `out/<station>/<playlist>.m3u` for AzuraCast, approved tracks only. Both refuse to run
+  on a catalog that fails validation.
 
 ## Adding a track
 
@@ -22,7 +27,7 @@ repo: the files live on the station's own storage.
 2. Add a row to `catalog/tracks.csv` with `status=pending`.
 3. Save the source page and the licence page with the Wayback Machine and write
    `evidence/<id>.json`.
-4. Put the file on the station's storage and fill in its sha256.
+4. Put the file on the station's storage and run `hash_files.py` on that folder.
 5. Run `python3 scripts/validate.py`, then review it and set `status=approved` and
    `reviewed_by`.
 6. Commit on a branch off `dev` and open a PR into `dev`.
