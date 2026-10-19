@@ -1,4 +1,6 @@
 import json
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -44,6 +46,36 @@ class IngestScriptsTest(unittest.TestCase):
         write_tracks([track(status="pending")], self.tracks)
         self.assertTrue(any("not found" in p for p in hash_files(self.dir / "media", self.tracks, self.evidence)))
 
+    def test_hash_skips_symlinks(self) -> None:
+        outside = self.dir / "outside.mp3"
+        outside.write_bytes(b"not station media")
+        (self.media / "fma-0001.mp3").symlink_to(outside)
+        write_tracks([track(status="pending", sha256="")], self.tracks)
+        self.assertTrue(any("not found" in p for p in hash_files(self.dir / "media", self.tracks, self.evidence)))
+
+    def test_hash_reports_evidence_for_a_different_file(self) -> None:
+        (self.media / "fma-0001.mp3").write_bytes(b"audio")
+        write_tracks([track(status="pending", sha256="")], self.tracks)
+        (self.evidence / "fma-0001.json").write_text(json.dumps({"id": "fma-0001", "file_sha256": "b" * 64}))
+        problems = hash_files(self.dir / "media", self.tracks, self.evidence)
+        self.assertTrue(any("different file" in p for p in problems))
+        self.assertEqual(json.loads((self.evidence / "fma-0001.json").read_text())["file_sha256"], "b" * 64)
+
+    def test_credits_order_and_special_characters(self) -> None:
+        write_tracks(
+            [
+                track(id="fma-0003", file_name="fma-0003.mp3", artist="b", title="Same"),
+                track(id="fma-0002", file_name="fma-0002.mp3", artist="A", title="Same"),
+                track(id="fma-0001", file_name="fma-0001.mp3", artist="a", title="Same", attribution='"Café <b>&</b>" by a'),
+            ],
+            self.tracks,
+        )
+        path = export_credits(self.tracks, self.dir / "out")
+        credits = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual([c["id"] for c in credits], ["fma-0001", "fma-0002", "fma-0003"])
+        self.assertEqual(credits[0]["attribution"], '"Café <b>&</b>" by a')
+        self.assertIn("Café", path.read_text(encoding="utf-8"))
+
     def test_exports_include_only_approved_tracks(self) -> None:
         write_tracks(
             [
@@ -60,6 +92,47 @@ class IngestScriptsTest(unittest.TestCase):
         paths = export_playlists(self.tracks, out)
         self.assertEqual([p.relative_to(out).as_posix() for p in paths], ["lofi/lofi-day.m3u", "lofi/lofi-night.m3u"])
         self.assertEqual(paths[0].read_text(), "#EXTM3U\nfma-0001.mp3\nfma-0003.mp3\n")
+
+
+class CommandLineTest(unittest.TestCase):
+    """Runs the scripts as Shane would, against a throwaway copy of the repo layout."""
+
+    def setUp(self) -> None:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = Path(tmp.name)
+        shutil.copytree(Path(__file__).resolve().parent.parent / "scripts", self.root / "scripts")
+        (self.root / "catalog").mkdir()
+        (self.root / "evidence").mkdir()
+        (self.root / "catalog" / "sources.csv").write_text("key,name,url,license_terms_url,notes\nfma,FMA,https://example.org,,\n")
+
+    def run_script(self, *args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run([sys.executable, *args], cwd=self.root, capture_output=True, text=True)
+
+    def test_exports_refuse_an_invalid_catalog(self) -> None:
+        write_tracks([track()], self.root / "catalog" / "tracks.csv")  # approved with no evidence
+        for script in ("scripts/export_credits.py", "scripts/export_playlist.py"):
+            with self.subTest(script=script):
+                result = self.run_script(script)
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("fails validate.py", result.stderr)
+        self.assertFalse((self.root / "out").exists())
+
+    def test_valid_catalog_exits_zero(self) -> None:
+        write_tracks([track(status="pending")], self.root / "catalog" / "tracks.csv")
+        for script in ("scripts/validate.py", "scripts/export_credits.py", "scripts/export_playlist.py"):
+            with self.subTest(script=script):
+                self.assertEqual(self.run_script(script).returncode, 0)
+
+    def test_validate_and_hash_exit_codes(self) -> None:
+        write_tracks([track(status="pending", license="CC-BY-NC-4.0")], self.root / "catalog" / "tracks.csv")
+        self.assertEqual(self.run_script("scripts/validate.py").returncode, 1)
+        self.assertEqual(self.run_script("scripts/hash_files.py").returncode, 1)  # no media folder given
+        media = self.root / "media"
+        media.mkdir()
+        self.assertEqual(self.run_script("scripts/hash_files.py", str(media)).returncode, 1)  # file missing
+        (media / "fma-0001.mp3").write_bytes(b"audio")
+        self.assertEqual(self.run_script("scripts/hash_files.py", str(media)).returncode, 0)
 
 
 if __name__ == "__main__":

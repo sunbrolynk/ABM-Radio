@@ -27,9 +27,11 @@ def hash_files(media: Path, tracks: Path = TRACKS, evidence: Path = EVIDENCE) ->
     wanted = {r["file_name"] for r in rows if r["file_name"] and r["status"] != "rejected"}
     found: dict[str, set[str]] = {}
     for p in media.rglob("*"):
-        if p.name in wanted and p.is_file():
+        # A symlink could point anywhere on the server; only real files under the media folder count.
+        if p.name in wanted and p.is_file() and not p.is_symlink():
             found.setdefault(p.name, set()).add(sha256(p))
     problems: list[str] = []
+    evidence_updates: dict[Path, dict[str, str]] = {}
     for r in rows:
         name = r["file_name"]
         if name not in wanted:
@@ -41,7 +43,7 @@ def hash_files(media: Path, tracks: Path = TRACKS, evidence: Path = EVIDENCE) ->
         if len(hashes) > 1:
             problems.append(f"{r['id']}: copies of {name} differ")
             continue
-        digest = hashes.pop()
+        digest = next(iter(hashes))
         if r["sha256"] and r["sha256"] != digest and r["status"] == "approved":
             problems.append(f"{r['id']}: file changed since it was approved; left the old hash, re-review it")
             continue
@@ -51,8 +53,15 @@ def hash_files(media: Path, tracks: Path = TRACKS, evidence: Path = EVIDENCE) ->
             ev = json.loads(ev_path.read_text(encoding="utf-8"))
             if not ev.get("file_sha256"):
                 ev["file_sha256"] = digest
-                ev_path.write_text(json.dumps(ev, indent=2) + "\n", encoding="utf-8")
+                evidence_updates[ev_path] = ev
+            elif ev["file_sha256"] != digest:
+                problems.append(f"{r['id']}: the evidence was captured for a different file (file_sha256 differs); check it")
+    # The catalog first: evidence only gains hashes the catalog already holds.
     write_tracks(rows, tracks)
+    for ev_path, ev in evidence_updates.items():
+        tmp = ev_path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(ev, indent=2) + "\n", encoding="utf-8")
+        tmp.replace(ev_path)
     return problems
 
 

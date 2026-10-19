@@ -95,6 +95,11 @@ class ValidateTest(unittest.TestCase):
         self.assertFails(errors, "id must be")
         self.assertFails(errors, "station must be")
 
+    def test_file_name_must_be_a_plain_basename(self) -> None:
+        for name in ("fma-0001.mp3\n#EXTINF:-1,x", "lofi/fma-0001.mp3", "fma-0001.mp3\\x", "fma-0001.MP3"):
+            with self.subTest(name=name):
+                self.assertFails(self.run_validate(track(file_name=name, status="pending")), "file_name must be")
+
     def test_id_with_trailing_newline_fails(self) -> None:
         self.assertFails(self.run_validate(track(id="fma-0001\n", status="pending")), "id must be")
 

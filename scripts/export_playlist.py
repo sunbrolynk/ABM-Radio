@@ -14,7 +14,6 @@ def export_playlists(tracks: Path = TRACKS, out: Path = OUT) -> list[Path]:
     playlists: dict[tuple[str, str], list[str]] = {}
     for r in approved(read_csv(tracks)[1]):
         for name in filter(None, r["playlists"].split(";")):
-            # shortcut: bare file names, matched by AzuraCast on import; switch to media-relative paths if names collide.
             playlists.setdefault((r["station"], name), []).append(r["file_name"])
     paths = []
     for (station, name), files in sorted(playlists.items()):

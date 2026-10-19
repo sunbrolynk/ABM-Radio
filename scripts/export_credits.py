@@ -14,7 +14,7 @@ FIELDS = ["id", "station", "title", "artist", "album", "license", "license_url",
 
 
 def export_credits(tracks: Path = TRACKS, out: Path = OUT) -> Path:
-    rows = sorted(approved(read_csv(tracks)[1]), key=lambda r: (r["station"], r["artist"].casefold(), r["title"].casefold()))
+    rows = sorted(approved(read_csv(tracks)[1]), key=lambda r: (r["station"], r["artist"].casefold(), r["title"].casefold(), r["id"]))
     out.mkdir(exist_ok=True)
     path = out / "credits.json"
     path.write_text(json.dumps([{k: r[k] for k in FIELDS} for r in rows], indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

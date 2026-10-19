@@ -35,6 +35,15 @@ paths) live in my private notes, never here.
   checksums.
 - **Rejected:** skipping the scan where Docker is missing.
 
+## To do
+
+- **M3U entries are bare file names** that AzuraCast matches on import. That's fine while every
+  file name is a unique `<id>.<ext>`. If two stations ever share a media folder, switch to
+  media-relative paths.
+- **For the site draft:** `credits.json` holds third-party text (titles, artist names,
+  attribution lines). The page must render it as text (`textContent`, or a framework's normal
+  escaping), never through `innerHTML` and never inlined into a `<script>` tag.
+
 ## Still to decide (handoff §11)
 
 1. Host machine and storage path (described here only generically).
