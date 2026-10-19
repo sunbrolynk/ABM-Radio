@@ -7,8 +7,11 @@ from pathlib import Path
 
 from catalog import COLUMNS, EVIDENCE, SOURCES, TRACKS, read_csv
 
-# What I accept is written up in LICENSES.md. NC and ND stay out until DECISIONS.md says otherwise.
+# What I accept is written up in LICENSES.md. NC and ND stay out of the music until DECISIONS.md
+# says otherwise; spoken word may use CC BY-NC-ND 4.0 while the station is non-commercial.
 LICENSE_RE = re.compile(r"^(CC0-1\.0|PD|CC-BY(-SA)?-(2\.0|2\.5|3\.0|4\.0)|SITE:[a-z0-9-]+)$")
+SPOKEN_LICENSE_RE = re.compile(r"^CC-BY-NC-ND-4\.0$")
+SPOKEN_STATIONS = {"storytime"}
 # The id becomes a file name, so keep it to plain lowercase words joined by dashes.
 ID_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # A plain <id>.<ext> file name: no paths, and no control characters to break an M3U line.
@@ -59,8 +62,11 @@ def validate(tracks: Path = TRACKS, sources: Path = SOURCES, evidence: Path = EV
             continue  # a rejected row only has to stay well-formed; its licence may be why it was rejected
         if r["source"] and r["source"] not in source_keys:
             err(f"source {r['source']!r} is not in sources.csv")
-        if not LICENSE_RE.fullmatch(r["license"]):
-            err(f"license {r['license']!r} is not on the accepted list")
+        spoken_ok = r["station"] in SPOKEN_STATIONS and SPOKEN_LICENSE_RE.fullmatch(r["license"])
+        if not (LICENSE_RE.fullmatch(r["license"]) or spoken_ok):
+            err(f"license {r['license']!r} is not on the accepted list for station {r['station']!r}")
+        if "-NC" in r["license"] and r["commercial_ok"] != "no":
+            err("a non-commercial licence needs commercial_ok=no")
         if r["license"].startswith("CC-BY") and not r["attribution"]:
             err("CC BY needs an attribution line")
         if r["status"] == "approved":

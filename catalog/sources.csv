@@ -1,1 +1,7 @@
 key,name,url,license_terms_url,notes
+librivox,LibriVox,https://librivox.org,https://librivox.org/pages/public-domain/,"Volunteer-read public-domain books. The site says anyone can use the recordings however they wish; credit is appreciated. Public domain in the USA, so check the work's status too."
+escape-pod,Escape Pod (Escape Artists),https://escapepod.org,https://escapepod.org/about-us/,"CC BY-NC-ND 4.0 per the about page. Check the licence line on EACH episode: older episodes were released under 3.0."
+podcastle,PodCastle (Escape Artists),https://podcastle.org,https://podcastle.org/about-us/,"CC BY-NC-ND 4.0 per the about page. Check the licence line on EACH episode: older ones may differ."
+pseudopod,Pseudopod (Escape Artists),https://pseudopod.org,https://pseudopod.org/about-us/,"The about page states NO Creative Commons licence (footer says all rights reserved). Episodes carry their own licence line: newer ones CC BY-NC-ND 4.0, older ones 3.0. Only take an episode whose own page states 4.0."
+cast-of-wonders,Cast of Wonders (Escape Artists),https://castofwonders.org,https://castofwonders.org/about-us/,"CC BY-NC-ND 4.0 per the about page. Check the licence line on EACH episode: older ones may differ."
+internet-archive-pd,Internet Archive (public-domain audio),https://archive.org,https://archive.org/about/terms.php,"Rights are per item and set by the uploader, not by the Archive. Many uploads are NOT public domain. Only take an item whose own page marks it public domain (or CC0), and capture that page."
