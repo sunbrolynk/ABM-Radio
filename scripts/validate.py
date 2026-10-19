@@ -20,7 +20,10 @@ def validate(tracks: Path = TRACKS, sources: Path = SOURCES, evidence: Path = EV
     header, rows = read_csv(tracks)
     if header != COLUMNS:
         return [f"tracks.csv header must be exactly: {','.join(COLUMNS)}"]
-    source_keys = {s["key"] for s in read_csv(sources)[1]}
+    source_header, source_rows = read_csv(sources)
+    if "key" not in source_header:
+        return ["sources.csv needs a key column"]
+    source_keys = {s["key"] for s in source_rows}
     errors: list[str] = []
     seen: set[str] = set()
     for line, r in enumerate(rows, start=2):
@@ -29,12 +32,12 @@ def validate(tracks: Path = TRACKS, sources: Path = SOURCES, evidence: Path = EV
         if None in r or any(r[c] is None for c in COLUMNS):
             err("wrong number of fields")
             continue
-        if not ID_RE.match(tid):
+        if not ID_RE.fullmatch(tid):
             err("id must be lowercase letters/digits joined by dashes")
         if tid in seen:
             err("duplicate id")
         seen.add(tid)
-        if not ID_RE.match(r["station"]):
+        if not ID_RE.fullmatch(r["station"]):
             err("station must be a lowercase-dashed name, e.g. lofi")
         for c in ("title", "artist", "source", "source_url", "license", "downloaded_at", "file_name"):
             if not r[c]:
@@ -46,15 +49,15 @@ def validate(tracks: Path = TRACKS, sources: Path = SOURCES, evidence: Path = EV
                 err(f"{c} must be yes or no")
         if r["file_name"] and not r["file_name"].startswith(tid + "."):
             err("file_name must be <id>.<ext>")
-        if any(not ID_RE.match(p) for p in r["playlists"].split(";") if p):
+        if any(not ID_RE.fullmatch(p) for p in r["playlists"].split(";") if p):
             err("playlists must be lowercase-dashed names separated by ;")
-        if r["sha256"] and not SHA_RE.match(r["sha256"]):
+        if r["sha256"] and not SHA_RE.fullmatch(r["sha256"]):
             err("sha256 is not a lowercase sha256 hex digest")
         if r["status"] == "rejected":
             continue  # a rejected row only has to stay well-formed; its licence may be why it was rejected
         if r["source"] and r["source"] not in source_keys:
             err(f"source {r['source']!r} is not in sources.csv")
-        if not LICENSE_RE.match(r["license"]):
+        if not LICENSE_RE.fullmatch(r["license"]):
             err(f"license {r['license']!r} is not on the accepted list")
         if r["license"].startswith("CC-BY") and not r["attribution"]:
             err("CC BY needs an attribution line")

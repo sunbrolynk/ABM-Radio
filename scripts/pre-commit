@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# abm-radio hook: installed and kept up to date by scripts/install-hooks.sh
 # Blocks a commit that stages a secret, home-network details, writing that isn't mine, or a broken catalog.
 set -euo pipefail
 
