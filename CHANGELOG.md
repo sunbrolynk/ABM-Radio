@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Halloween: 15 approved tracks plus 10 pending, and the holiday-playlist method in
+  DECISIONS.md and the server guide, with a troubleshooting section.
+
 - `site-draft/`: page copy, a player spec and the credits format for radio.audiobookmanager.com.
 
 - Every track's tag also carries its genre, release year, cover art, licence (copyright field and
@@ -48,6 +51,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   commit emails that aren't GitHub no-reply addresses.
 
 ### Fixed
+
+- The history check ignores the trailing context in git's hunk headers, which git cuts at an
+  arbitrary width and which once ended mid-URL, looking like a bare hostname.
 
 - FMA's resized cover links serve WebP labelled as JPEG, which players and Liquidsoap can't read
   inside an MP3. Covers now come from FMA's original image file, and an image's type is taken from

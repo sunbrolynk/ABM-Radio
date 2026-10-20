@@ -178,6 +178,14 @@ library leaves AutoDJ nothing it's allowed to play). Song requests and streamers
 create a `lofi` folder and link it to the playlist (**Set Playlists**), plus an `incoming` folder
 linked to nothing, where new tracks wait until they're approved.
 
+**Holiday playlists** (Halloween first): a **General Rotation** playlist with a low weight (1, next to
+LoFi's 3, so about one track in four), scheduled 00:00 to 23:59 across the holiday's date range,
+and linked to its own folder. AutoDJ picks between general-rotation playlists at random by weight,
+so holiday tracks mix into the lofi instead of taking over. Start and end times must differ (the
+same time means "play once a day"), and the schedule's dates include the year, so move them
+forward every year. Leave a holiday playlist disabled until it has approved tracks: an enabled,
+scheduled, empty playlist stalls AutoDJ (see Troubleshooting).
+
 **Mount Points:** `/radio.mp3` at **MP3 128 kbps** (the default mount, for compatibility) and
 `/radio.aac` at **AAC 96 kbps** (better sound per bit, plays on Apple devices too).
 
@@ -196,3 +204,21 @@ source and sha256, so any file can be fetched again and checked.
 *Written up as I do it.* AzuraCast updates through its own updater on the stable channel. The
 admin pages stay on the local network or VPN only, and nothing is exposed to the internet until
 the launch review.
+
+## Troubleshooting
+
+**The dashboard says "Station Offline" (playlist "default") while music plays, and "Record not
+found" keeps popping up.** Liquidsoap's log shows `nextsong ... Queue is empty!` and `AutoDJ could
+not be initialized`: Liquidsoap is playing its playlist file directly while AzuraCast's queue
+builder has nothing to give it. Fix: delete empty playlists (including the default one), disable
+any scheduled playlist that's still empty, clear the queue in **Administration → System
+Debugger**, then **Restart Broadcasting**.
+
+**A track moved out of a playlist folder still plays in that playlist.** A folder link only adds
+files to its playlist; moving a file out doesn't remove it. Untick the old playlist under the
+file's **Playlists** as well.
+
+**FMA cover art shows as broken in the Liquidsoap log** (`No JPEG data found in image`). FMA's
+resized image links serve WebP labelled as JPEG. The tagging scripts take covers from FMA's
+original files and embed only real JPEG or PNG, so this only applies to files tagged some other
+way.

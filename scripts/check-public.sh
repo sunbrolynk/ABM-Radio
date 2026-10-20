@@ -53,7 +53,9 @@ case "${1:-}" in
         voice_check
         ;;
     --history)
-        history="$(git log --all -p --format='commit %H%n%B')"
+        # A hunk header's trailing context is git's own excerpt, cut at an arbitrary width, so it can
+        # end in the middle of a web address; it isn't file content, so only "@@ ... @@" is kept.
+        history="$(git log --all -p --format='commit %H%n%B' | sed -E 's/^(@@ [^@]* @@).*/\1/')"
         search() { grep -n "$@" <<< "$history"; }
         scan
         # GitHub's own merge commits are committed by noreply@github.com; everything else is mine or a bot's no-reply.

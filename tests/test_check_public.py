@@ -114,6 +114,16 @@ class CheckPublicTest(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("no-reply", result.stderr)
 
+    def test_history_ignores_git_hunk_header_context(self) -> None:
+        url = "https" + "://example.org/a-long-path/"
+        lines = [f"row{i},{url}{i}" for i in range(40)]
+        self.staged("\n".join(lines) + "\n")
+        self.git("commit", "-q", "-m", "x")
+        lines[30] = lines[30] + "-changed"
+        self.staged("\n".join(lines) + "\n")
+        self.git("commit", "-q", "-m", "y")
+        self.assertEqual(self.check("--history").returncode, 0, self.check("--history").stderr)
+
     def test_history_accepts_noreply_emails(self) -> None:
         self.staged("fine\n")
         self.git("commit", "-q", "-m", "x")
