@@ -79,6 +79,10 @@ class ValidateTest(unittest.TestCase):
         story = track(station="storytime", status="pending", license="CC-BY-NC-ND-4.0", commercial_ok="yes")
         self.assertFails(self.run_validate(story), "commercial_ok=no")
 
+    def test_nd_music_is_accepted_and_nc_music_is_not(self) -> None:
+        self.assertEqual(self.run_validate(track(status="pending", license="CC-BY-ND-4.0")), [])
+        self.assertFails(self.run_validate(track(status="pending", license="CC-BY-NC-SA-4.0", commercial_ok="no")), "accepted list")
+
     def test_rejected_row_may_carry_any_licence(self) -> None:
         self.assertEqual(self.run_validate(track(status="rejected", license="CC-BY-NC-4.0")), [])
 

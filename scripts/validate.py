@@ -7,9 +7,9 @@ from pathlib import Path
 
 from catalog import COLUMNS, EVIDENCE, SOURCES, TRACKS, read_csv
 
-# What I accept is written up in LICENSES.md. NC and ND stay out of the music until DECISIONS.md
-# says otherwise; spoken word may use CC BY-NC-ND 4.0 while the station is non-commercial.
-LICENSE_RE = re.compile(r"^(CC0-1\.0|PD|CC-BY(-SA)?-(2\.0|2\.5|3\.0|4\.0)|SITE:[a-z0-9-]+)$")
+# What I accept is written up in LICENSES.md. ND plays unedited; NC never goes in the music.
+# Spoken word may use CC BY-NC-ND 4.0 while the station is non-commercial.
+LICENSE_RE = re.compile(r"^(CC0-1\.0|PD|CC-BY(-SA|-ND)?-(2\.0|2\.5|3\.0|4\.0)|SITE:[a-z0-9-]+)$")
 SPOKEN_LICENSE_RE = re.compile(r"^CC-BY-NC-ND-4\.0$")
 SPOKEN_STATIONS = {"storytime"}
 # The id becomes a file name, so keep it to plain lowercase words joined by dashes.
