@@ -52,6 +52,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- The history check ignores the trailing context in git's hunk headers, which git cuts at an
+  arbitrary width and which once ended mid-URL, looking like a bare hostname.
+
 - FMA's resized cover links serve WebP labelled as JPEG, which players and Liquidsoap can't read
   inside an MP3. Covers now come from FMA's original image file, and an image's type is taken from
   its own bytes: only real JPEG and PNG are embedded. Broken covers are replaced, and
