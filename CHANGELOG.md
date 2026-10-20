@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Halloween: 15 approved tracks plus 10 pending, and the holiday-playlist method in
+  DECISIONS.md and the server guide, with a troubleshooting section.
+
 - `site-draft/`: page copy, a player spec and the credits format for radio.audiobookmanager.com.
 
 - Every track's tag also carries its genre, release year, cover art, licence (copyright field and
