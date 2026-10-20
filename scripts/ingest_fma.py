@@ -16,6 +16,7 @@ incoming/ folder afterwards.
 
 import html
 import json
+import os
 import re
 import sys
 import time
@@ -156,14 +157,49 @@ def next_id(rows: list[dict[str, str]], prefix: str = "fma") -> str:
     return f"{prefix}-{max(used, default=0) + 1:04d}"
 
 
+IA_KEYS = Path("~/.config/abm-radio/ia-s3").expanduser()  # my two archive.org keys, colon-separated; readable only by me
+
+
 def wayback(url: str) -> str:
-    """Asks the Wayback Machine to save the page and returns the snapshot URL, or '' if it failed."""
+    """Asks the Wayback Machine to save the page and returns the snapshot URL, or '' if it failed.
+    With my archive.org keys it uses the logged-in save API, since anonymous saves get refused."""
+    if os.environ.get("WAYBACK") == "later":  # batch now, snapshot in one slow pass afterwards
+        return ""
+    if IA_KEYS.is_file():
+        return wayback_logged_in(url, IA_KEYS.read_text().strip())
     try:
         with urllib.request.urlopen(urllib.request.Request("https://web.archive.org/save/" + url, headers=UA), timeout=180) as r:
             final = r.geturl()
             return final if "/web/" in final else ""
     except OSError:
         return ""
+
+
+def wayback_logged_in(url: str, keys: str, wait: float = 5, tries: int = 36) -> str:
+    """Save Page Now 2: start a capture job, then poll it until it succeeds or fails (3 min max)."""
+    headers = {**UA, "Accept": "application/json", "Authorization": f"LOW {keys}"}
+
+    def get(req: urllib.request.Request) -> dict:
+        """Connections to web.archive.org are refused now and then, so each call gets a few goes.
+        Errors aren't logged: their text could echo the request."""
+        for attempt in range(4):
+            try:
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    return json.load(r)
+            except (OSError, ValueError):
+                time.sleep(wait * (attempt + 1))
+        return {}
+
+    data = urllib.parse.urlencode({"url": url}).encode()
+    job = get(urllib.request.Request("https://web.archive.org/save", data, headers)).get("job_id")
+    for _ in range(tries if job else 0):
+        time.sleep(wait)
+        s = get(urllib.request.Request(f"https://web.archive.org/save/status/{job}", headers=headers))
+        if s.get("status") == "success":
+            return f"https://web.archive.org/web/{s['timestamp']}/{s['original_url']}"
+        if s.get("status") not in ("pending", None):
+            return ""
+    return ""
 
 
 def ingest(url: str, station: str, playlists: str, staging: Path) -> str:

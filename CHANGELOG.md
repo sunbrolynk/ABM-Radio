@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Wayback snapshots go through my archive.org account when its keys are on this machine, since
+  anonymous saves get refused, and a refused connection is retried instead of failing the save.
+  `WAYBACK=later` skips the save during a big batch, so the snapshots can follow in one slow pass.
+
 - Halloween: 15 approved tracks plus 10 pending, and the holiday-playlist method in
   DECISIONS.md and the server guide, with a troubleshooting section.
 
