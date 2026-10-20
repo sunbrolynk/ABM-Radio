@@ -69,7 +69,7 @@ class ParseTrackPageTest(unittest.TestCase):
         m = page_metadata(page() + extra)
         self.assertEqual(m["genres"], ["Lo-fi Hip-Hop", "Chill-out"])
         self.assertEqual(m["released"], "2025-09-29")
-        self.assertEqual(m["art_url"], "https://freemusicarchive.org/image/?file=image%2Fb.png&width=400&type=album")
+        self.assertEqual(m["art_url"], "https://files.freemusicarchive.org/storage-freemusicarchive-org/image/b.png")
         self.assertEqual(page_metadata(page()), {"genres": [], "released": "", "art_url": ""})
 
     def test_cover_prefers_the_track_image(self) -> None:

@@ -6,7 +6,7 @@ Usage: python3 scripts/ingest_fma.py <file of track page URLs> <station> <playli
        python3 scripts/ingest_fma.py --enrich <staging dir>
 
 --enrich fetches genre, release date and cover art for pending FMA tracks that don't have them
-yet, then re-tags every pending file.
+yet (or whose cover isn't a real JPEG or PNG), then re-tags every pending file.
 
 One URL per line; blank lines and lines starting with # are skipped, and so is any URL already in
 tracks.csv. Tracks go in one at a time with a pause between them, to go easy on FMA and the
@@ -26,15 +26,14 @@ from pathlib import Path
 
 from catalog import COLUMNS, EVIDENCE, TRACKS, read_csv, write_tracks
 from hash_files import sha256
-from tag_mp3 import extras, tag, tag_pending
+from tag_mp3 import extras, image_mime, tag, tag_pending
 
 UA = {"User-Agent": "Mozilla/5.0 (abm-radio catalog ingest)"}
 PAUSE_S = 8
 PAGE_HOSTS = {"freemusicarchive.org"}
 AUDIO_HOSTS = {"files.freemusicarchive.org"}
 MAX_AUDIO_BYTES = 50 * 1024 * 1024
-MAX_ART_BYTES = 5 * 1024 * 1024
-ART_TYPES = {"image/jpeg", "image/png"}
+MAX_ART_BYTES = 8 * 1024 * 1024
 FMA = re.escape("https://freemusicarchive.org")
 # creativecommons.org path -> (licence id prefix, human name); NC licences are deliberately absent.
 LICENCES = {
@@ -121,28 +120,30 @@ def page_metadata(page: str) -> dict:
 
 
 def cover_url(page: str) -> str:
-    """The track's own cover if it has one, else the album's, at the largest size offered; '' if neither."""
+    """The original file of the track's own cover if it has one, else the album's; '' if neither.
+    (The page's resized image links serve WebP labelled as JPEG, so they're not used.)"""
     links = [html.unescape(u) for u in re.findall(FMA + r"/image/\?file=[^\"' ]+", page)]
-    width = lambda u: int(m.group(1)) if (m := re.search(r"width=(\d+)", u)) else 0  # noqa: E731
     for kind in ("type=track", "type=album", "file=album_image"):
-        found = [u for u in links if kind in u and "type=artist" not in u]
-        if found:
-            return max(found, key=width)
+        for link in links:
+            if kind in link and "type=artist" not in link:
+                path = urllib.parse.unquote(re.search(r"file=([^&]+)", link).group(1))
+                return f"https://files.freemusicarchive.org/storage-freemusicarchive-org/{path}"
     return ""
 
 
 def fetch_art(art_url: str, staging: Path, tid: str) -> str:
-    """Saves the cover as <id>.art in staging and returns its type, or '' if there's no usable cover."""
+    """Saves the cover as <id>.art in staging and returns its real type, or '' if there's no usable
+    JPEG or PNG. The type comes from the image's own bytes, never the server's label."""
     if not art_url:
         return ""
     try:
-        body, kind = fetch(art_url, PAGE_HOSTS, limit=MAX_ART_BYTES)
+        body, _ = fetch(art_url, AUDIO_HOSTS, limit=MAX_ART_BYTES)
     except (ValueError, OSError):
         return ""
-    if kind not in ART_TYPES:
-        return ""
-    (staging / f"{tid}.art").write_bytes(body)
-    return kind
+    mime = image_mime(body)
+    if mime:
+        (staging / f"{tid}.art").write_bytes(body)
+    return mime
 
 
 def looks_like_mp3(body: bytes) -> bool:
@@ -217,10 +218,12 @@ def enrich(staging: Path) -> list[str]:
         if r["status"] != "pending" or r["source"] != "fma" or not ev_path.is_file():
             continue
         ev = json.loads(ev_path.read_text(encoding="utf-8"))
-        if "page_metadata" in ev:
-            continue
+        art = staging / f"{r['id']}.art"
+        if "page_metadata" in ev and art.is_file() and image_mime(art.read_bytes()):
+            continue  # already has metadata and a real JPEG or PNG cover
         page, _ = fetch(r["source_url"], PAGE_HOSTS, limit=5 * 1024 * 1024)
         meta = page_metadata(page.decode("utf-8", "replace"))
+        art.unlink(missing_ok=True)
         meta["art_mime"] = fetch_art(meta["art_url"], staging, r["id"])
         ev["page_metadata"] = meta
         ev_path.write_text(json.dumps(ev, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
