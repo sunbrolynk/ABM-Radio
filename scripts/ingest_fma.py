@@ -22,6 +22,7 @@ from pathlib import Path
 
 from catalog import COLUMNS, EVIDENCE, TRACKS, read_csv, write_tracks
 from hash_files import sha256
+from tag_mp3 import tag
 
 UA = {"User-Agent": "Mozilla/5.0 (abm-radio catalog ingest)"}
 PAUSE_S = 8
@@ -127,6 +128,7 @@ def ingest(url: str, station: str, playlists: str, staging: Path) -> str:
     file_name = f"{tid}.mp3"
     staging.mkdir(parents=True, exist_ok=True)
     (staging / file_name).write_bytes(audio)
+    tag(staging / file_name, t["title"], t["artist"], t["album"], f'{t["attribution"]}. {url}')
     digest = sha256(staging / file_name)
     archived = wayback(url)
     row = dict.fromkeys(COLUMNS, "")
@@ -136,6 +138,8 @@ def ingest(url: str, station: str, playlists: str, staging: Path) -> str:
         commercial_ok="yes", streaming_ok="yes", downloaded_at=date.today().isoformat(),
         file_name=file_name, sha256=digest, station=station, playlists=playlists, status="pending",
     )  # fmt: skip
+    # Re-read just before writing, so an approval made while this track downloaded isn't lost.
+    _, rows = read_csv(TRACKS)
     write_tracks([*rows, row])
     evidence = {
         "id": tid,

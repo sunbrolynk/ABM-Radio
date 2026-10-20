@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `tag_mp3.py`, which writes the catalog's title, artist, album and credit into each MP3's tag, so
+  the station shows the right credit for files that arrive untagged. The ingest tags every track
+  before hashing it.
+
 - `ingest_fma.py` and `approve.py`, which bring Free Music Archive tracks in as pending with their
   licence proof, then approve them in bulk.
 
@@ -38,6 +42,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   commit emails that aren't GitHub no-reply addresses.
 
 ### Fixed
+
+- The public-check tests strip git's hook variables (`GIT_DIR` and friends). Run inside a hook,
+  they could otherwise act on the real repo instead of their throwaway one.
+
+- The ingest re-reads the catalog just before writing a track's row, so an approval made while a
+  track was downloading isn't overwritten.
 
 - `ingest_fma.py` only fetches over https from FMA's own hosts (redirects included), caps
   downloads at 50 MB, accepts only MP3 audio, and refuses a page showing more than one licence.
