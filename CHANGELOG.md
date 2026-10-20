@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `site-draft/`: page copy, a player spec and the credits format for radio.audiobookmanager.com.
+
 - Every track's tag also carries its genre, release year, cover art, licence (copyright field and
   licence link) and FMA source link. `ingest_fma.py --enrich` backfills them for tracks already
   downloaded.
