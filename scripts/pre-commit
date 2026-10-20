@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# abm-radio hook: installed and kept up to date by scripts/install-hooks.sh
+# Blocks a commit that stages a secret, home-network details, writing that isn't mine, or a broken catalog.
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+echo "Scanning staged changes for secrets..."
+bash scripts/check-secrets.sh --staged
+
+echo "Checking staged files are fit for a public repo..."
+bash scripts/check-public.sh
+
+# Validate exactly what is being committed (the index git hands the hook, which for git commit -a
+# or a path-limited commit is not the usual one), not the working files.
+echo "Validating the catalog..."
+snapshot="$(mktemp -d)"
+trap 'rm -rf "$snapshot"' EXIT
+git checkout-index --all --prefix="$snapshot/"
+python3 "$snapshot/scripts/validate.py"

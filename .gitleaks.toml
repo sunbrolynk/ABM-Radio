@@ -1,0 +1,5 @@
+# The default gitleaks rules. Home-network details are checked by scripts/check-public.sh.
+title = "ABM Radio gitleaks config"
+
+[extend]
+useDefault = true

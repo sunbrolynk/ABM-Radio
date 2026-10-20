@@ -1,0 +1,21 @@
+# Audio never goes in this repo: it lives on the station's media storage.
+*.mp3
+*.flac
+*.ogg
+*.opus
+*.m4a
+*.aac
+*.wav
+
+# Written by the export scripts.
+out/
+
+# My local lists for check-public.sh, and my private notes; none of them is ever committed.
+.infra-names
+.blocked-words
+private/
+
+__pycache__/
+*.py[cod]
+*.tmp
+.DS_Store
