@@ -39,6 +39,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- `ingest_fma.py` only fetches over https from FMA's own hosts (redirects included), caps
+  downloads at 50 MB, accepts only MP3 audio, and refuses a page showing more than one licence.
+  `approve.py` says plainly when a failed Wayback save is what's blocking an approval.
+
 - A `file_name` must be a plain lowercase `<id>.<ext>`, so it can't carry a path or inject a line
   into a playlist.
 - `hash_files.py` skips symlinks, writes evidence atomically and only after the catalog, and

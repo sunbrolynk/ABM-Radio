@@ -9,11 +9,11 @@ sftp's batch mode (`sftp -b -`) to move the files into the playlist folder.
 
 import sys
 
-from catalog import TRACKS, read_csv, write_tracks
+from catalog import EVIDENCE, SOURCES, TRACKS, read_csv, write_tracks
 from validate import validate
 
 
-def approve(reviewer: str, ids: list[str], tracks=TRACKS) -> list[str]:
+def approve(reviewer: str, ids: list[str], tracks=TRACKS, sources=SOURCES, evidence=EVIDENCE) -> list[str]:
     _, rows = read_csv(tracks)
     by_id = {r["id"]: r for r in rows}
     missing = [i for i in ids if i not in by_id]
@@ -26,9 +26,10 @@ def approve(reviewer: str, ids: list[str], tracks=TRACKS) -> list[str]:
         by_id[i].update(status="approved", reviewed_by=reviewer)
     original = tracks.read_bytes()
     write_tracks(rows, tracks)
-    if problems := validate(tracks):
+    if problems := validate(tracks, sources, evidence):
         tracks.write_bytes(original)  # put it back: an approval that doesn't validate never sticks
-        raise ValueError("validation failed, nothing approved:\n" + "\n".join(problems))
+        hint = " (an empty archived_url means the Wayback save failed: save the page again first)"
+        raise ValueError("validation failed, nothing approved" + (hint if any("archived_url" in p for p in problems) else "") + ":\n" + "\n".join(problems))
     return [by_id[i]["file_name"] for i in ids]
 
 
