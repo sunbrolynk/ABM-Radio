@@ -54,6 +54,20 @@ paths) live in my private notes, never here.
 - **Indie authors need written permission** (an email is enough), stored as evidence like any
   licence. How a permission is recorded in `tracks.csv` gets decided with the first one.
 
+## The server
+
+- **Host:** a dedicated VM on my home Proxmox server (4 cores, 4 GB RAM, 40 GB system disk), with
+  the music on a 750 GB disk carved from a two-drive ZFS mirror reserved for the stations. The
+  exact host, addresses and paths live in my private notes.
+- **Rejected:** a single music drive (no redundancy), and the Proxmox host's shared VM storage
+  (the library could crowd out other VMs).
+- **Rejected:** secondhand storage-array drives (520-byte sectors), which the RAID controller
+  can't use without a low-level reformat.
+- **AzuraCast** uses the official Docker installer on the stable channel. It isn't a Portainer
+  stack, because AzuraCast supports only its own installer and updater.
+- **Listener data:** analytics collection is **Limited**, so AzuraCast keeps listener totals but
+  no per-listener IP statistics, and playback history is kept for 30 days.
+
 ## To do
 
 - **M3U entries are bare file names** that AzuraCast matches on import. That's fine while every
@@ -65,11 +79,10 @@ paths) live in my private notes, never here.
 
 ## Still to decide (handoff §11)
 
-1. Host machine and storage path (described here only generically).
-2. NC music, and whether the station ever takes donations.
-3. ND music.
-4. Folder-based playlists or M3U import.
-5. Stream hostname, and whether a DNS-only record exposing my IP is OK.
-6. Landing page: a page on the site, or AzuraCast's own public page.
-7. The removal-request contact address.
-8. Listener-IP log retention.
+1. NC music, and whether the station ever takes donations.
+2. ND music.
+3. Folder-based playlists or M3U import.
+4. Stream hostname, and whether a DNS-only record exposing my IP is OK.
+5. Landing page: a page on the site, or AzuraCast's own public page.
+6. The removal-request contact address.
+7. Listener-IP log retention beyond AzuraCast's analytics (web server logs).
