@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 from approve import approve  # noqa: E402
 from catalog import read_csv, write_tracks  # noqa: E402
 import ingest_fma  # noqa: E402
-from ingest_fma import check_url, next_id, parse_track_page  # noqa: E402
+from ingest_fma import check_url, cover_url, looks_like_mp3, next_id, page_metadata, parse_track_page  # noqa: E402
 from test_validate import track  # noqa: E402
 
 URL = "https://freemusicarchive.org/music/popoi/single/cafezinho-com-leite/"
@@ -56,6 +56,34 @@ class ParseTrackPageTest(unittest.TestCase):
         footer = '<footer><a rel="license" href="https://creativecommons.org/licenses/by-nc/4.0">site</a></footer>'
         with self.assertRaises(ValueError):
             parse_track_page(page() + footer, URL)
+
+    def test_page_metadata(self) -> None:
+        extra = (
+            '<a href="https://freemusicarchive.org/genre/Lo-fi_Hip-Hop/">Lo-fi Hip-Hop</a>'
+            '<a href="https://freemusicarchive.org/genre/Chill-out/"> Chill-out </a>'
+            "<span>Released</span> <span>Sep 29, 2025</span>"
+            '<img src="https://freemusicarchive.org/image/?file=artist_image%2Fa.jpg&amp;type=artist">'
+            '<img src="https://freemusicarchive.org/image/?file=image%2Fb.png&amp;width=290&amp;type=album">'
+            '<img src="https://freemusicarchive.org/image/?file=image%2Fb.png&amp;width=400&amp;type=album">'
+        )
+        m = page_metadata(page() + extra)
+        self.assertEqual(m["genres"], ["Lo-fi Hip-Hop", "Chill-out"])
+        self.assertEqual(m["released"], "2025-09-29")
+        self.assertEqual(m["art_url"], "https://files.freemusicarchive.org/storage-freemusicarchive-org/image/b.png")
+        self.assertEqual(page_metadata(page()), {"genres": [], "released": "", "art_url": ""})
+
+    def test_cover_prefers_the_track_image(self) -> None:
+        links = (
+            '"https://freemusicarchive.org/image/?file=image%2Falbum.png&amp;width=400&amp;type=album"'
+            '"https://freemusicarchive.org/image/?file=track_image%2Ft.png&amp;width=290&amp;type=track"'
+        )
+        self.assertIn("track_image", cover_url(links))
+
+    def test_looks_like_mp3(self) -> None:
+        self.assertTrue(looks_like_mp3(b"ID3\x03\x00"))
+        self.assertTrue(looks_like_mp3(b"\xff\xfb\x90\x64"))
+        for not_mp3 in (b"<html>", b"PK\x03\x04", b"\x89PNG", b"", b"\xff"):
+            self.assertFalse(looks_like_mp3(not_mp3))
 
     def test_next_id(self) -> None:
         self.assertEqual(next_id([]), "fma-0001")

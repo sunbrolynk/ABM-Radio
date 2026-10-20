@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Halloween: 15 approved tracks plus 10 pending, and the holiday-playlist method in
+  DECISIONS.md and the server guide, with a troubleshooting section.
+
+- `site-draft/`: page copy, a player spec and the credits format for radio.audiobookmanager.com.
+
+- Every track's tag also carries its genre, release year, cover art, licence (copyright field and
+  licence link) and FMA source link. `ingest_fma.py --enrich` backfills them for tracks already
+  downloaded.
+
 - `tag_mp3.py`, which writes the catalog's title, artist, album and credit into each MP3's tag, so
   the station shows the right credit for files that arrive untagged. The ingest tags every track
   before hashing it.
@@ -42,6 +51,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   commit emails that aren't GitHub no-reply addresses.
 
 ### Fixed
+
+- The history check ignores the trailing context in git's hunk headers, which git cuts at an
+  arbitrary width and which once ended mid-URL, looking like a bare hostname.
+
+- FMA's resized cover links serve WebP labelled as JPEG, which players and Liquidsoap can't read
+  inside an MP3. Covers now come from FMA's original image file, and an image's type is taken from
+  its own bytes: only real JPEG and PNG are embedded. Broken covers are replaced, and
+  `tag_mp3.py --fix-approved-art` repairs approved files, refusing any change to the audio bytes.
+
+- FMA serves some artists' files as `application/octet-stream`. The ingest now accepts those only
+  when the bytes start like an MP3, instead of refusing them.
 
 - The public-check tests strip git's hook variables (`GIT_DIR` and friends). Run inside a hook,
   they could otherwise act on the real repo instead of their throwaway one.

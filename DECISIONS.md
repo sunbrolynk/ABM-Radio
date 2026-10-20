@@ -126,6 +126,20 @@ paths) live in my private notes, never here.
 - **Everything still waits for my ears.** Nothing leaves `incoming/` until I've listened and
   approved it.
 
+## Holiday music
+
+- **Each holiday gets its own playlist and folder,** mixed in at random rather than played in a
+  fixed slot: a General Rotation playlist with a low weight, scheduled across the holiday's dates.
+  Tested with Halloween in October 2026: the queue mixes Halloween tracks in among the lofi
+  without taking over.
+- **Rejected:** "once every N songs", which is predictable and was ruled out as not random
+  enough.
+- **The dates include the year,** so each holiday playlist's schedule is moved forward once a
+  year.
+- **Sources:** HoliznaCC0's holiday beat tapes are CC0. For *Beats From The Crypt*, the album text
+  says "patrons only", but Holizna's Patreon no longer exists and each track page states CC0. I
+  accept those tracks as CC0, and each row notes why.
+
 ## To do
 
 - **M3U entries are bare file names** that AzuraCast matches on import. That's fine while every
