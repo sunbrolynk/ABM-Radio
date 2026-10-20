@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 from catalog import read_csv, write_tracks  # noqa: E402
 from export_credits import export_credits  # noqa: E402
 from export_playlist import export_playlists  # noqa: E402
+from check_media import check_media  # noqa: E402
 from hash_files import hash_files, sha256  # noqa: E402
 from test_validate import track  # noqa: E402
 
@@ -75,6 +76,18 @@ class IngestScriptsTest(unittest.TestCase):
         self.assertEqual([c["id"] for c in credits], ["fma-0001", "fma-0002", "fma-0003"])
         self.assertEqual(credits[0]["attribution"], '"Café <b>&</b>" by a')
         self.assertIn("Café", path.read_text(encoding="utf-8"))
+
+    def test_check_media_flags_anything_unapproved_outside_incoming(self) -> None:
+        media = self.dir / "media"
+        (media / "incoming").mkdir()
+        (media / "incoming" / "fma-0009.mp3").write_bytes(b"pending, not on air")
+        (self.media / "fma-0001.mp3").write_bytes(b"audio")
+        (self.media / "fma-0002.mp3").write_bytes(b"never approved")
+        (self.media / "cover.jpg").write_bytes(b"not audio")
+        write_tracks([track(sha256=sha256(self.media / "fma-0001.mp3"))], self.tracks)
+        self.assertEqual(check_media(media, self.tracks), ["lofi/lofi-day/fma-0002.mp3: no approved row in tracks.csv"])
+        (self.media / "fma-0001.mp3").write_bytes(b"swapped")
+        self.assertTrue(any("sha256 differs" in p for p in check_media(media, self.tracks)))
 
     def test_exports_include_only_approved_tracks(self) -> None:
         write_tracks(

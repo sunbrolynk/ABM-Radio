@@ -68,6 +68,20 @@ paths) live in my private notes, never here.
 - **Listener data:** analytics collection is **Limited**, so AzuraCast keeps listener totals but
   no per-listener IP statistics, and playback history is kept for 30 days.
 
+## Playlists come from folders
+
+- **Chosen:** folder-based playlists. Each playlist is a folder in AzuraCast's media library,
+  linked to that playlist, so what's in the folder is what plays, with no import step to forget
+  or drift out of sync.
+- **Rejected:** importing M3U files from `export_playlist.py` after every batch. It's an extra
+  manual step, and the folders already give the same result. The script stays for rebuilding a
+  playlist if it's ever needed.
+- **The approval gate:** new files wait in `incoming/`, which isn't linked to any playlist, until
+  their row is approved. `check_media.py` fails if any audio file outside `incoming/` lacks an
+  approved row with a matching sha256.
+- **One playlist to start**, "Lofi", playing all day. A day/night split only pays off once
+  there are enough tracks that each half doesn't repeat too often.
+
 ## To do
 
 - **M3U entries are bare file names** that AzuraCast matches on import. That's fine while every
@@ -81,8 +95,7 @@ paths) live in my private notes, never here.
 
 1. NC music, and whether the station ever takes donations.
 2. ND music.
-3. Folder-based playlists or M3U import.
-4. Stream hostname, and whether a DNS-only record exposing my IP is OK.
-5. Landing page: a page on the site, or AzuraCast's own public page.
-6. The removal-request contact address.
-7. Listener-IP log retention beyond AzuraCast's analytics (web server logs).
+3. Stream hostname, and whether a DNS-only record exposing my IP is OK.
+4. Landing page: a page on the site, or AzuraCast's own public page.
+5. The removal-request contact address.
+6. Listener-IP log retention beyond AzuraCast's analytics (web server logs).
