@@ -50,8 +50,8 @@ is no audio in this repo; the files live on the station's own storage.
 | `scripts/hash_files.py <folder>` | Writes each file's sha256 into the catalog. It never changes the hash of an approved track. |
 | `scripts/export_credits.py` | Writes `out/credits.json` for the website's credits page. |
 | `scripts/export_playlist.py` | Writes `out/<station>/<playlist>.m3u` for AzuraCast. |
-| `scripts/ingest_fma.py <urls> <station> <playlists> <staging>` | Brings Free Music Archive tracks in as pending: refuses unaccepted licences, saves the page to the Wayback Machine, downloads the file and writes the row and evidence. |
-| `scripts/tag_mp3.py <staging>` | Writes each pending MP3's title, artist, album and credit into its ID3 tag (keeping cover art) and updates its sha256. The ingest does this for every new track. |
+| `scripts/ingest_fma.py <urls> <station> <playlists> <staging>` (or `--enrich <staging>`) | Brings Free Music Archive tracks in as pending: refuses unaccepted licences, saves the page to the Wayback Machine, downloads the file and writes the row and evidence. |
+| `scripts/tag_mp3.py <staging>` | Writes each pending MP3's title, artist, album, credit, genre, release year, cover art, licence and source link into its ID3 tag (never replacing the artist's own cover) and updates its sha256. The ingest does this for every new track. |
 | `scripts/approve.py <reviewer> <folder> <id>…` | Approves tracks (only if the catalog still validates) and prints the SFTP moves that put them on air. |
 | `scripts/check_media.py <folder>` | Checks that every audio file on the server outside `incoming/` is an approved track with a matching sha256. |
 | [`docs/server-setup.md`](docs/server-setup.md) | Building the AzuraCast server from scratch. |

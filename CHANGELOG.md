@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Every track's tag also carries its genre, release year, cover art, licence (copyright field and
+  licence link) and FMA source link. `ingest_fma.py --enrich` backfills them for tracks already
+  downloaded.
+
 - `tag_mp3.py`, which writes the catalog's title, artist, album and credit into each MP3's tag, so
   the station shows the right credit for files that arrive untagged. The ingest tags every track
   before hashing it.
@@ -42,6 +46,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   commit emails that aren't GitHub no-reply addresses.
 
 ### Fixed
+
+- FMA serves some artists' files as `application/octet-stream`. The ingest now accepts those only
+  when the bytes start like an MP3, instead of refusing them.
 
 - The public-check tests strip git's hook variables (`GIT_DIR` and friends). Run inside a hook,
   they could otherwise act on the real repo instead of their throwaway one.

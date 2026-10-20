@@ -3,6 +3,10 @@ licence I don't accept, saves the page to the Wayback Machine, downloads the aud
 staging folder and writes the tracks.csv row and evidence file.
 
 Usage: python3 scripts/ingest_fma.py <file of track page URLs> <station> <playlists> <staging dir>
+       python3 scripts/ingest_fma.py --enrich <staging dir>
+
+--enrich fetches genre, release date and cover art for pending FMA tracks that don't have them
+yet, then re-tags every pending file.
 
 One URL per line; blank lines and lines starting with # are skipped, and so is any URL already in
 tracks.csv. Tracks go in one at a time with a pause between them, to go easy on FMA and the
@@ -22,13 +26,16 @@ from pathlib import Path
 
 from catalog import COLUMNS, EVIDENCE, TRACKS, read_csv, write_tracks
 from hash_files import sha256
-from tag_mp3 import tag
+from tag_mp3 import extras, tag, tag_pending
 
 UA = {"User-Agent": "Mozilla/5.0 (abm-radio catalog ingest)"}
 PAUSE_S = 8
 PAGE_HOSTS = {"freemusicarchive.org"}
 AUDIO_HOSTS = {"files.freemusicarchive.org"}
 MAX_AUDIO_BYTES = 50 * 1024 * 1024
+MAX_ART_BYTES = 5 * 1024 * 1024
+ART_TYPES = {"image/jpeg", "image/png"}
+FMA = re.escape("https://freemusicarchive.org")
 # creativecommons.org path -> (licence id prefix, human name); NC licences are deliberately absent.
 LICENCES = {
     "licenses/by/": ("CC-BY", "CC BY"),
@@ -97,7 +104,50 @@ def parse_track_page(page: str, url: str) -> dict[str, str]:
         "attribution": f'"{title}" by {artist}, {credit}',
         "quote": quote,
         "file_url": info["fileUrl"],
+        **page_metadata(page),
     }
+
+
+def page_metadata(page: str) -> dict:
+    """Genres, release date and cover art link from a track page; any of them may be missing."""
+    genres = re.findall(FMA + r'/genre/[^"]+"[^>]*>\s*([^<]+?)\s*<', page)
+    released = re.search(r"Released\s*(?:<[^>]+>\s*)*([A-Z][a-z]{2} \d{1,2}, \d{4})", page)
+    art = cover_url(page)
+    return {
+        "genres": list(dict.fromkeys(html.unescape(g) for g in genres)),
+        "released": datetime.strptime(released.group(1), "%b %d, %Y").date().isoformat() if released else "",
+        "art_url": art,
+    }
+
+
+def cover_url(page: str) -> str:
+    """The track's own cover if it has one, else the album's, at the largest size offered; '' if neither."""
+    links = [html.unescape(u) for u in re.findall(FMA + r"/image/\?file=[^\"' ]+", page)]
+    width = lambda u: int(m.group(1)) if (m := re.search(r"width=(\d+)", u)) else 0  # noqa: E731
+    for kind in ("type=track", "type=album", "file=album_image"):
+        found = [u for u in links if kind in u and "type=artist" not in u]
+        if found:
+            return max(found, key=width)
+    return ""
+
+
+def fetch_art(art_url: str, staging: Path, tid: str) -> str:
+    """Saves the cover as <id>.art in staging and returns its type, or '' if there's no usable cover."""
+    if not art_url:
+        return ""
+    try:
+        body, kind = fetch(art_url, PAGE_HOSTS, limit=MAX_ART_BYTES)
+    except (ValueError, OSError):
+        return ""
+    if kind not in ART_TYPES:
+        return ""
+    (staging / f"{tid}.art").write_bytes(body)
+    return kind
+
+
+def looks_like_mp3(body: bytes) -> bool:
+    """Some FMA files come as application/octet-stream; trust them only if they start like an MP3."""
+    return body[:3] == b"ID3" or (len(body) > 1 and body[0] == 0xFF and body[1] & 0xE0 == 0xE0)
 
 
 def next_id(rows: list[dict[str, str]], prefix: str = "fma") -> str:
@@ -122,13 +172,15 @@ def ingest(url: str, station: str, playlists: str, staging: Path) -> str:
     page, _ = fetch(url, PAGE_HOSTS, limit=5 * 1024 * 1024)
     t = parse_track_page(page.decode("utf-8", "replace"), url)
     audio, kind = fetch(t["file_url"], AUDIO_HOSTS)
-    if kind != "audio/mpeg":  # MP3 only: it's what FMA serves and what the file name says
-        raise ValueError(f"audio is {kind!r}, not audio/mpeg")
+    if not (kind == "audio/mpeg" or (kind == "application/octet-stream" and looks_like_mp3(audio))):
+        raise ValueError(f"audio is {kind!r}, not MP3")  # MP3 only: what FMA serves and what the file name says
     tid = next_id(rows)
     file_name = f"{tid}.mp3"
     staging.mkdir(parents=True, exist_ok=True)
     (staging / file_name).write_bytes(audio)
-    tag(staging / file_name, t["title"], t["artist"], t["album"], f'{t["attribution"]}. {url}')
+    meta = {"genres": t["genres"], "released": t["released"], "art_url": t["art_url"], "art_mime": fetch_art(t["art_url"], staging, tid)}
+    row_like = {"id": tid, "license": t["license"], "license_url": t["license_url"], "source_url": url}
+    tag(staging / file_name, t["title"], t["artist"], t["album"], f'{t["attribution"]}. {url}', extras(row_like, {"page_metadata": meta}, staging))
     digest = sha256(staging / file_name)
     archived = wayback(url)
     row = dict.fromkeys(COLUMNS, "")
@@ -149,13 +201,39 @@ def ingest(url: str, station: str, playlists: str, staging: Path) -> str:
         "archived_url": archived,
         "captured_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "file_sha256": digest,
+        "page_metadata": meta,
     }
     (EVIDENCE / f"{tid}.json").write_text(json.dumps(evidence, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     note = "" if archived else " (Wayback save failed; retry before approving)"
     return f"{tid}: {t['artist']} - {t['title']} [{t['license']}]{note}"
 
 
+def enrich(staging: Path) -> list[str]:
+    """Adds page_metadata (and the cover) to pending FMA tracks that lack it, then re-tags all pending files."""
+    _, rows = read_csv(TRACKS)
+    done = []
+    for r in rows:
+        ev_path = EVIDENCE / f"{r['id']}.json"
+        if r["status"] != "pending" or r["source"] != "fma" or not ev_path.is_file():
+            continue
+        ev = json.loads(ev_path.read_text(encoding="utf-8"))
+        if "page_metadata" in ev:
+            continue
+        page, _ = fetch(r["source_url"], PAGE_HOSTS, limit=5 * 1024 * 1024)
+        meta = page_metadata(page.decode("utf-8", "replace"))
+        meta["art_mime"] = fetch_art(meta["art_url"], staging, r["id"])
+        ev["page_metadata"] = meta
+        ev_path.write_text(json.dumps(ev, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        done.append(r["id"])
+        time.sleep(2)
+    tag_pending(staging)
+    return done
+
+
 if __name__ == "__main__":
+    if len(sys.argv) == 3 and sys.argv[1] == "--enrich":
+        print(f"enriched {len(enrich(Path(sys.argv[2])))} tracks; re-tagged all pending files")
+        sys.exit(0)
     if len(sys.argv) != 5:
         sys.exit("usage: ingest_fma.py <url file> <station> <playlists> <staging dir>")
     urls = [u.strip() for u in Path(sys.argv[1]).read_text().splitlines() if u.strip() and not u.startswith("#")]
