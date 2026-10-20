@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `check_media.py`, which fails if any audio file on the server outside `incoming/` lacks an
+  approved row with a matching sha256.
+
 - The server guide now covers the Ubuntu install, the music disk, AzuraCast's install and
   settings, the station, its streams and both backup layers, and DECISIONS.md records the server
   choices.

@@ -174,6 +174,10 @@ The first station is **ABM Lofi**, URL stub `lofi`, with its website set to
 prevention at **60 minutes** (raise it as the library grows; a window longer than the whole
 library leaves AutoDJ nothing it's allowed to play). Song requests and streamers/DJs off.
 
+**Playlists:** one playlist, `Lofi` (general rotation, no schedule). In **Media → Music Files**,
+create a `lofi` folder and link it to the playlist (**Set Playlists**), plus an `incoming` folder
+linked to nothing, where new tracks wait until they're approved.
+
 **Mount Points:** `/radio.mp3` at **MP3 128 kbps** (the default mount, for compatibility) and
 `/radio.aac` at **AAC 96 kbps** (better sound per bit, plays on Apple devices too).
 

@@ -50,6 +50,7 @@ is no audio in this repo; the files live on the station's own storage.
 | `scripts/hash_files.py <folder>` | Writes each file's sha256 into the catalog. It never changes the hash of an approved track. |
 | `scripts/export_credits.py` | Writes `out/credits.json` for the website's credits page. |
 | `scripts/export_playlist.py` | Writes `out/<station>/<playlist>.m3u` for AzuraCast. |
+| `scripts/check_media.py <folder>` | Checks that every audio file on the server outside `incoming/` is an approved track with a matching sha256. |
 | [`docs/server-setup.md`](docs/server-setup.md) | Building the AzuraCast server from scratch. |
 | [`docs/website.md`](docs/website.md) | How the station page and credits fit together. |
 | [`LICENSES.md`](LICENSES.md) | The licences I accept, for music and spoken word. |
@@ -60,14 +61,17 @@ validation.
 
 ## 🎵 Adding a track
 
-1. Download the original file and rename it to `<id>.<ext>`, e.g. `chillhop-0001.mp3`.
+1. Download the original file and rename it to `<id>.<ext>`, e.g. `fma-0001.mp3`.
 2. Add a row to `catalog/tracks.csv` with `status=pending`.
 3. Save the source page and the licence page with the Wayback Machine and write
    `evidence/<id>.json`.
-4. Put the file on the station's storage and run `hash_files.py` on that folder.
-5. Run `python3 scripts/validate.py`, then review it and set `status=approved` and
+4. Upload the file to the station's `incoming/` folder, which isn't linked to any playlist, so
+   nothing plays before it's approved. Run `hash_files.py` on the media folder.
+5. Run `python3 scripts/validate.py`, review the track, and set `status=approved` and
    `reviewed_by`.
-6. Commit on a branch off `dev` and open a PR into `dev`.
+6. Move the file into its playlist folder (e.g. `lofi/`); AzuraCast adds it to that playlist.
+   `check_media.py` confirms nothing unapproved is outside `incoming/`.
+7. Commit on a branch off `dev` and open a PR into `dev`.
 
 Run `bash scripts/install-hooks.sh` once after cloning. The hooks need `python3` and either Docker
 or gitleaks 8.30.0, and they block secrets, home-network details and broken catalogs before
