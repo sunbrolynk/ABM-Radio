@@ -15,6 +15,7 @@ import json
 import re
 import sys
 import time
+import urllib.parse
 import urllib.request
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -24,6 +25,9 @@ from hash_files import sha256
 
 UA = {"User-Agent": "Mozilla/5.0 (abm-radio catalog ingest)"}
 PAUSE_S = 8
+PAGE_HOSTS = {"freemusicarchive.org"}
+AUDIO_HOSTS = {"files.freemusicarchive.org"}
+MAX_AUDIO_BYTES = 50 * 1024 * 1024
 # creativecommons.org path -> (licence id prefix, human name); NC licences are deliberately absent.
 LICENCES = {
     "licenses/by/": ("CC-BY", "CC BY"),
@@ -33,9 +37,24 @@ LICENCES = {
 }
 
 
-def fetch(url: str) -> bytes:
+def check_url(url: str, hosts: set[str]) -> None:
+    """Only https, and only hosts I've seen FMA use, so a changed page can't point anywhere else."""
+    u = urllib.parse.urlsplit(url)
+    if u.scheme != "https" or u.hostname not in hosts:
+        raise ValueError(f"refusing {url!r}: not https on {sorted(hosts)}")
+
+
+def fetch(url: str, hosts: set[str], limit: int = MAX_AUDIO_BYTES) -> tuple[bytes, str]:
+    """Fetches url, refusing redirects off the allowed hosts and bodies over limit. Returns (body, content type)."""
+    check_url(url, hosts)
     with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
-        return r.read()
+        check_url(r.geturl(), hosts)
+        body = b""
+        while chunk := r.read(1024 * 1024):
+            body += chunk
+            if len(body) > limit:
+                raise ValueError(f"{url} is over {limit} bytes")
+        return body, r.headers.get_content_type()
 
 
 def parse_track_page(page: str, url: str) -> dict[str, str]:
@@ -48,9 +67,12 @@ def parse_track_page(page: str, url: str) -> dict[str, str]:
             break
     if info is None:
         raise ValueError("no track data for this URL on the page")
+    links = {m.group(1).rstrip("/") for m in re.finditer(r'rel="license"[^>]*href="([^"]+)"', page)}
+    if len(links) != 1:
+        raise ValueError(f"expected exactly one licence link on the page, found {sorted(links) or 'none'}")
     link = re.search(r'rel="license"[^>]*href="https?://creativecommons\.org/([^"]+?)/?"', page)
     if not link:
-        raise ValueError("no licence link on the page")
+        raise ValueError(f"licence link {links.pop()!r} isn't a Creative Commons one")
     path = link.group(1)
     match = next((v for k, v in LICENCES.items() if path.startswith(k)), None)
     version = re.search(r"/(\d\.\d)$", path)
@@ -96,11 +118,15 @@ def ingest(url: str, station: str, playlists: str, staging: Path) -> str:
     _, rows = read_csv(TRACKS)
     if any(r["source_url"].rstrip("/") == url.rstrip("/") for r in rows):
         return f"skip (already catalogued): {url}"
-    t = parse_track_page(fetch(url).decode("utf-8", "replace"), url)
+    page, _ = fetch(url, PAGE_HOSTS, limit=5 * 1024 * 1024)
+    t = parse_track_page(page.decode("utf-8", "replace"), url)
+    audio, kind = fetch(t["file_url"], AUDIO_HOSTS)
+    if kind != "audio/mpeg":  # MP3 only: it's what FMA serves and what the file name says
+        raise ValueError(f"audio is {kind!r}, not audio/mpeg")
     tid = next_id(rows)
     file_name = f"{tid}.mp3"
     staging.mkdir(parents=True, exist_ok=True)
-    (staging / file_name).write_bytes(fetch(t["file_url"]))
+    (staging / file_name).write_bytes(audio)
     digest = sha256(staging / file_name)
     archived = wayback(url)
     row = dict.fromkeys(COLUMNS, "")
