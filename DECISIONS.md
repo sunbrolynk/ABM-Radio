@@ -113,6 +113,19 @@ paths) live in my private notes, never here.
 - **One playlist to start**, "Lofi", playing all day. A day/night split only pays off once
   there are enough tracks that each half doesn't repeat too often.
 
+## Bringing tracks in
+
+- **Free Music Archive tracks come in through `ingest_fma.py`,** one at a time with a pause
+  between them. It reads the track page's own data and licence link, refuses anything that isn't
+  CC BY, BY-SA, BY-ND or CC0, saves the page to the Wayback Machine and fetches the audio file the
+  page's player uses. Downloading by hand was the alternative, and it doesn't scale past a few
+  dozen tracks.
+- **The files reach the server through AzuraCast's SFTP,** into `incoming/`, with a key that only
+  reaches the station's media. `approve.py` approves tracks only if the whole catalog still
+  validates, and prints the moves into the playlist folder.
+- **Everything still waits for my ears.** Nothing leaves `incoming/` until I've listened and
+  approved it.
+
 ## To do
 
 - **M3U entries are bare file names** that AzuraCast matches on import. That's fine while every
