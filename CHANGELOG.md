@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   anonymous saves get refused, and a refused connection is retried instead of failing the save.
   `WAYBACK=later` skips the save during a big batch, so the snapshots can follow in one slow pass.
 
+- 826 pending tracks with their licence proof, waiting for me to listen: Lofi batches 2, 4 and 5
+  and its holiday tracks, plus the first batches for Lil' Beats FM (kids) and Velvet Static. None
+  plays until I approve it.
+
 - Halloween: 15 approved tracks plus 10 pending, and the holiday-playlist method in
   DECISIONS.md and the server guide, with a troubleshooting section.
 
