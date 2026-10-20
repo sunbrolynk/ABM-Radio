@@ -56,6 +56,7 @@ is no audio in this repo; the files live on the station's own storage.
 | `scripts/check_media.py <folder>` | Checks that every audio file on the server outside `incoming/` is an approved track with a matching sha256. |
 | [`docs/server-setup.md`](docs/server-setup.md) | Building the AzuraCast server from scratch. |
 | [`docs/website.md`](docs/website.md) | How the station page and credits fit together. |
+| [`site-draft/`](site-draft/README.md) | My draft of the station page: copy, player spec, credits format. |
 | [`LICENSES.md`](LICENSES.md) | The licences I accept, for music and spoken word. |
 | [`DECISIONS.md`](DECISIONS.md) | What I decided, what I turned down, and why. |
 
