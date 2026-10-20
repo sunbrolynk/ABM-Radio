@@ -35,6 +35,19 @@ paths) live in my private notes, never here.
   checksums.
 - **Rejected:** skipping the scan where Docker is missing.
 
+## Music licences
+
+- **No NC music.** The music library takes only licences without a non-commercial clause: CC0,
+  public domain, CC BY, CC BY-SA, CC BY-ND and site licences that allow radio. A lot of lofi is
+  NC, so the pool is smaller, but the station never has to worry about what counts as
+  commercial, and support links stay possible.
+- **CC BY-ND is accepted, played whole and unedited.** Broadcasting a complete track isn't a
+  derivative work. Crossfading two tracks and levelling loudness are normal broadcast handling,
+  not remixing, so I treat them as playing the work unmodified. Rejected: dropping ND entirely,
+  which would cost tracks for no real gain.
+- **Removal requests** go to admin@audiobookmanager.com, the address already on the README and
+  SECURITY.md.
+
 ## Spoken word (for Story Time, after the lofi station)
 
 - **Commercial audiobooks are never aired,** bought or not. A personal licence doesn't include
@@ -93,9 +106,6 @@ paths) live in my private notes, never here.
 
 ## Still to decide (handoff §11)
 
-1. NC music, and whether the station ever takes donations.
-2. ND music.
-3. Stream hostname, and whether a DNS-only record exposing my IP is OK.
-4. Landing page: a page on the site, or AzuraCast's own public page.
-5. The removal-request contact address.
-6. Listener-IP log retention beyond AzuraCast's analytics (web server logs).
+1. Stream hostname, and whether a DNS-only record exposing my IP is OK.
+2. Landing page: a page on the site, or AzuraCast's own public page.
+3. Listener-IP log retention beyond AzuraCast's analytics (web server logs).

@@ -9,11 +9,12 @@ file, and every approved item has evidence of it in `evidence/`.
 | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | `CC0-1.0` | |
 | [CC BY](https://creativecommons.org/licenses/by/4.0/) 2.0 to 4.0 | `CC-BY-4.0` etc. | The attribution line is shown publicly. |
 | [CC BY-SA](https://creativecommons.org/licenses/by-sa/4.0/) 2.0 to 4.0 | `CC-BY-SA-4.0` etc. | As CC BY. |
+| [CC BY-ND](https://creativecommons.org/licenses/by-nd/4.0/) 2.0 to 4.0 | `CC-BY-ND-4.0` etc. | As CC BY, and always played whole and unedited. |
 | A site's own licence | `SITE:<name>` | Only if it explicitly allows internet radio, streaming or broadcast. |
 
 Not accepted: anything "personal use only", "YouTube/video only" wording that doesn't cover
-streaming, anything without a clear licence, and anything ripped from YouTube or Spotify. Whether
-music under CC BY-NC or CC BY-ND goes on air is still open in `DECISIONS.md`.
+streaming, anything without a clear licence, and anything ripped from YouTube or Spotify. Music under
+any non-commercial (NC) licence is never accepted.
 
 ## Spoken word
 

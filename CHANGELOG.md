@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- CC BY-ND music is accepted, played unedited. NC music never is.
+
 - `check_media.py`, which fails if any audio file on the server outside `incoming/` lacks an
   approved row with a matching sha256.
 
