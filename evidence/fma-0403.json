@@ -1,0 +1,33 @@
+{
+  "id": "fma-0403",
+  "source_url": "https://freemusicarchive.org/music/kirk-osamayo/purple-season-3/ykwis/",
+  "license": "CC-BY-4.0",
+  "license_text_quote": "YKWIS by Kirk Osamayo is licensed under a Attribution 4.0 International License.",
+  "archived_url": "",
+  "captured_at": "2026-10-20T16:59:02Z",
+  "file_sha256": "2702181206093ef6101930367ea6cf11832fdbf9c9071bd94d7e9e5afab5b10c",
+  "page_metadata": {
+    "genres": [
+      "Jazz",
+      "Pop",
+      "Soul-RnB",
+      "Funk",
+      "Experimental",
+      "Free-Jazz",
+      "Experimental Pop",
+      "Progressive",
+      "Minimal Electronic",
+      "Synth Pop",
+      "Downtempo",
+      "Sound Art",
+      "Instrumental",
+      "Vaporwave",
+      "Lo-fi Electronic",
+      "Lo-fi Experimental",
+      "Lo-fi Instrumental"
+    ],
+    "released": "2022-11-05",
+    "art_url": "https://files.freemusicarchive.org/storage-freemusicarchive-org/album_image/hGWmGY4OJzMECHP95w2VAlpLXTxJn1kvzSpchSXf.png",
+    "art_mime": "image/png"
+  }
+}
