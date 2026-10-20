@@ -2,6 +2,7 @@ import json
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
@@ -174,6 +175,65 @@ class ApproveTest(unittest.TestCase):
             approve("shane", ["fma-9999"], self.tracks)
         with self.assertRaises(ValueError):
             approve("shane", ["fma-0001"], self.tracks)
+
+
+class JsonResponse:
+    def __init__(self, data: dict) -> None:
+        self.body = json.dumps(data).encode()
+
+    def __enter__(self) -> "JsonResponse":
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        pass
+
+    def read(self, n: int = -1) -> bytes:
+        return self.body
+
+
+class WaybackTest(unittest.TestCase):
+    def fake(self, *replies: object) -> list[str]:
+        """Each urlopen call takes the next reply; an exception instance is raised instead."""
+        calls, queue = [], list(replies)
+
+        def urlopen(req, **_kw):
+            calls.append(req.full_url)
+            reply = queue.pop(0)
+            if isinstance(reply, Exception):
+                raise reply
+            return JsonResponse(reply)
+
+        for patch in (unittest.mock.patch.object(ingest_fma.urllib.request, "urlopen", urlopen),
+                      unittest.mock.patch.object(ingest_fma.time, "sleep", lambda _s: None)):
+            patch.start()
+            self.addCleanup(patch.stop)
+        return calls
+
+    def test_later_skips_the_save(self) -> None:
+        calls = self.fake()
+        with unittest.mock.patch.dict("os.environ", {"WAYBACK": "later"}):
+            self.assertEqual(ingest_fma.wayback("https://freemusicarchive.org/music/a/b/c/"), "")
+        self.assertEqual(calls, [])
+
+    def test_logged_in_save_polls_until_success_and_rides_out_refusals(self) -> None:
+        self.fake(
+            {"job_id": "spn2-1"},
+            ConnectionRefusedError(),
+            {"status": "pending"},
+            {"status": "success", "timestamp": "20261020180032", "original_url": "https://freemusicarchive.org/music/a/b/c/"},
+        )
+        self.assertEqual(
+            ingest_fma.wayback_logged_in("https://freemusicarchive.org/music/a/b/c/", "k:s"),
+            "https://web.archive.org/web/20261020180032/https://freemusicarchive.org/music/a/b/c/",
+        )
+
+    def test_logged_in_save_gives_up_on_an_error_status(self) -> None:
+        self.fake({"job_id": "spn2-1"}, {"status": "error", "status_ext": "error:blocked"})
+        self.assertEqual(ingest_fma.wayback_logged_in("https://freemusicarchive.org/music/a/b/c/", "k:s"), "")
+
+    def test_logged_in_save_gives_up_when_no_job_starts(self) -> None:
+        self.fake(*[ConnectionRefusedError()] * 4)
+        self.assertEqual(ingest_fma.wayback_logged_in("https://freemusicarchive.org/music/a/b/c/", "k:s"), "")
 
 
 if __name__ == "__main__":
