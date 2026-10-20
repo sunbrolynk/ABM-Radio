@@ -91,39 +91,104 @@ where ZFS starts to slow down, and the disk can be grown later.
 
 Boot the VM and open the **Console**. In the installer:
 
-- Pick the default **Ubuntu Server** install.
-- Install on the 40 GB disk only. Leave the music disk alone; it's set up after the install.
+- Pick the default **Ubuntu Server** install (not minimized), with DHCP networking.
+- **Use an entire disk** and pick the **40 GB** disk only. Leave the music disk alone; it's set
+  up after the install.
+- On the storage summary, check `ubuntu-lv`: the installer often sizes it to only half the
+  disk. **Edit** it to the maximum size it offers.
+- Server name `abm-radio`, your own user, and a strong password from a password manager.
 - Tick **Install OpenSSH server**. Import your SSH key from GitHub if you use one there.
-- Skip the optional snaps; Docker comes from AzuraCast's installer.
+- Skip Ubuntu Pro and the optional snaps; Docker comes from AzuraCast's installer.
 
-After the reboot, eject the ISO (**Hardware → CD/DVD Drive → Do not use any media**).
+After the reboot, eject the ISO (**Hardware → CD/DVD Drive → Do not use any media**). Give the
+VM a DHCP reservation on the router so its address never changes.
 
-## 5. First login: updates, the guest agent and SSH
+## 5. Updates and the guest agent
 
-*Written up as I do it.*
+```
+sudo apt update && sudo apt full-upgrade -y && sudo apt install -y qemu-guest-agent && sudo systemctl start qemu-guest-agent && sudo reboot
+```
 
-## 6. Mount the music disk
+The guest agent lets Proxmox shut the VM down cleanly, freeze it for consistent backups, and
+show its address. Ubuntu's automatic security updates (`unattended-upgrades`) are on by default.
 
-*Written up as I do it.*
+## 6. Mount the music disk where Docker keeps its data
+
+Everything AzuraCast stores (its database, settings and every station's media) lives in Docker's
+data folder, so the music disk is mounted there before Docker is installed. The 40 GB disk then
+holds only Ubuntu.
+
+```
+sudo mkfs.ext4 -L radio-data /dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi1
+sudo mkdir -p /var/lib/docker
+echo 'LABEL=radio-data /var/lib/docker ext4 defaults,discard 0 2' | sudo tee -a /etc/fstab
+sudo systemctl daemon-reload && sudo mount -a && df -h /var/lib/docker
+```
+
+The disk is picked by its permanent `scsi1` name, never `sdb`, so the system disk can't be
+formatted by mistake. There's deliberately no `nofail`: if the music disk ever goes missing, the
+VM stops at boot instead of quietly starting AzuraCast on the small system disk.
 
 ## 7. Install AzuraCast
 
-*Written up as I do it,* using AzuraCast's official Docker installer from
-[azuracast.com](https://www.azuracast.com).
+AzuraCast's official installer, as [its docs](https://www.azuracast.com) give it:
+
+```
+sudo mkdir -p /var/azuracast && cd /var/azuracast
+sudo curl -fsSL https://raw.githubusercontent.com/AzuraCast/AzuraCast/main/docker.sh -o docker.sh
+sudo chmod a+x docker.sh && sudo ./docker.sh install
+```
+
+- Let it install Docker.
+- Switch to the **Stable** release channel when asked. The script updates itself and stops, so
+  run `sudo ./docker.sh install` again.
+- Keep the default ports, skip any domain or certificate questions until launch, and say yes to
+  blocking common bots and crawlers.
+
+When it finishes it suggests the public IP; open the VM's LAN address over `http://` instead.
+Create the super administrator with a password from a password manager, then turn on
+**two-factor authentication** under the account's profile straight after the setup wizard.
+
+**Administration → System Settings:**
+
+| Setting | Value |
+|---|---|
+| Site Base URL | the LAN address for now; `https://stream.audiobookmanager.com` at launch |
+| Instance Name | `ABM Radio` |
+| Use Web Proxy for Radio | on (streams go through ports 80/443, nothing else opened) |
+| Days of Playback History | 30 |
+| Listener Analytics Collection | **Limited** (totals only, no per-listener IP tracking) |
+| Always Use HTTPS | off until the stream domain has its certificate |
+| API Access-Control-Allow-Origin | `https://radio.audiobookmanager.com` |
+| Allow Raw Liquidsoap Configuration | off |
+| Filter Local User-provided URLs | on |
+| Allow Web Hooks | off until the Discord alerts exist |
 
 ## 8. Create the station
 
-*Written up as I do it.* The first station is **ABM Lofi** (short name `lofi`): AutoDJ on with a
-2-3 second crossfade, ReplayGain on, an MP3 128 kbps mount plus an efficient AAC or Opus mount,
-and listener requests off.
+The first station is **ABM Lofi**, URL stub `lofi`, with its website set to
+`https://radio.audiobookmanager.com/lofi`, public pages on and on-demand streaming off.
 
-## 9. Backups and updates
+**Edit Station Settings → AutoDJ:** Liquidsoap, **Smart** crossfade at **2.5 s**, ReplayGain on,
+**Master_me** post-processing with the **Music General** preset at **-16 LUFS**, and duplicate
+prevention at **60 minutes** (raise it as the library grows; a window longer than the whole
+library leaves AutoDJ nothing it's allowed to play). Song requests and streamers/DJs off.
 
-*Written up as I do it.* The plan: AzuraCast's built-in daily backup kept for 7 days, a scheduled
-Proxmox backup of the whole VM (music disk included), and AzuraCast's own updater on the stable
-channel.
+**Mount Points:** `/radio.mp3` at **MP3 128 kbps** (the default mount, for compatibility) and
+`/radio.aac` at **AAC 96 kbps** (better sound per bit, plays on Apple devices too).
 
-## 10. Keeping it private until launch
+## 9. Backups
 
-*Written up as I do it.* The admin pages stay on the local network or VPN only. Nothing is
-exposed to the internet until the launch review.
+- **AzuraCast (Administration → Backups):** nightly at 03:00, 7 copies, media excluded. It holds
+  the settings, database, playlists and history.
+- **Proxmox (Datacenter → Backup):** the whole VM, music disk included, nightly at 03:30 in
+  snapshot mode with ZSTD, keeping 7 daily and 4 weekly copies. Run it once by hand to test it.
+
+The music itself is also protected by the ZFS mirror, and the catalog records every track's
+source and sha256, so any file can be fetched again and checked.
+
+## 10. Updates and keeping it private until launch
+
+*Written up as I do it.* AzuraCast updates through its own updater on the stable channel. The
+admin pages stay on the local network or VPN only, and nothing is exposed to the internet until
+the launch review.

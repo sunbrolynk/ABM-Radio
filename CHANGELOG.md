@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- The server guide now covers the Ubuntu install, the music disk, AzuraCast's install and
+  settings, the station, its streams and both backup layers, and DECISIONS.md records the server
+  choices.
+
 - A README with the AudioBook Manager branding, plus from-scratch guides for the server
   (`docs/server-setup.md`) and the website side (`docs/website.md`).
 
