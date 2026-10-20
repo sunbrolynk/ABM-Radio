@@ -81,6 +81,24 @@ paths) live in my private notes, never here.
 - **Listener data:** analytics collection is **Limited**, so AzuraCast keeps listener totals but
   no per-listener IP statistics, and playback history is kept for 30 days.
 
+## Going public (the plan the launch review checks)
+
+- **One stream hostname for every station:** `stream.audiobookmanager.com`, with each station at
+  its own path (`/listen/lofi/…`, `/listen/storytime/…`). Stations don't need hostnames of their
+  own.
+- **It points straight at my home IP** as a DNS-only (grey-cloud) record, with AzuraCast issuing
+  its own TLS certificate. I'm fine with the IP being visible. Rejected for now: a VPS relay in
+  front of it. It's worth revisiting only if the home connection is ever attacked or can't keep
+  up with listeners.
+- **The landing page is a page on my own website** at `radio.audiobookmanager.com`, so I have
+  full control over how it looks and works. AzuraCast's own public page stays available for its
+  embeddable player. Rejected: pointing the subdomain at AzuraCast's page, which is off-brand and
+  has no credits page.
+- **Logs keep listener IPs briefly.** AzuraCast already keeps no per-listener analytics. Its web
+  server logs still record IPs, so they're capped at roughly a week: enough to look into abuse
+  or a fault, not a long-term record of who listened. This gets enforced with Docker's log
+  rotation before launch.
+
 ## Playlists come from folders
 
 - **Chosen:** folder-based playlists. Each playlist is a folder in AzuraCast's media library,
@@ -104,8 +122,3 @@ paths) live in my private notes, never here.
   attribution lines). The page must render it as text (`textContent`, or a framework's normal
   escaping), never through `innerHTML` and never inlined into a `<script>` tag.
 
-## Still to decide (handoff §11)
-
-1. Stream hostname, and whether a DNS-only record exposing my IP is OK.
-2. Landing page: a page on the site, or AzuraCast's own public page.
-3. Listener-IP log retention beyond AzuraCast's analytics (web server logs).
