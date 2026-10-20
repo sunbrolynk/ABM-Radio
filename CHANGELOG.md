@@ -47,6 +47,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- FMA's resized cover links serve WebP labelled as JPEG, which players and Liquidsoap can't read
+  inside an MP3. Covers now come from FMA's original image file, and an image's type is taken from
+  its own bytes: only real JPEG and PNG are embedded. Broken covers are replaced, and
+  `tag_mp3.py --fix-approved-art` repairs approved files, refusing any change to the audio bytes.
+
 - FMA serves some artists' files as `application/octet-stream`. The ingest now accepts those only
   when the bytes start like an MP3, instead of refusing them.
 
