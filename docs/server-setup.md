@@ -17,7 +17,7 @@ several stations. The VM below uses:
 | CPU | 4 cores |
 | RAM | 4 GB |
 | System disk | 40 GB, on the host's fast VM storage |
-| Music disk | a dedicated drive (about 1 TB), reserved for the stations |
+| Music disk | 750 GB on a dedicated two-drive ZFS mirror |
 | OS | Ubuntu Server 24.04 LTS |
 
 ## 1. Download the Ubuntu installer into Proxmox
@@ -33,37 +33,59 @@ choose **Download from URL**:
 Proxmox checks the download against that checksum and fails the task if they don't match, so a
 corrupted or tampered installer never gets used.
 
-## 2. Give the music its own drive
+## 2. Give the music its own mirrored drives
 
-The music gets a whole physical drive instead of a slice of the shared VM storage, so no other VM
-can ever eat into it, and a full music library can't fill up the storage other VMs live on.
+The music gets two physical drives of its own, mirrored with ZFS: every block is on both, so one
+drive can die without the station going quiet, and ZFS checksums catch and repair silent
+corruption. No other VM can eat into it, and a full library can't fill the storage other VMs
+live on.
 
-1. In Proxmox, open the host, then **Disks**, and find the unused drive. Check the model and
-   size twice: the next step erases it.
-2. Select it and choose **Wipe Disk**.
-3. Under **Disks → LVM-Thin**, choose **Create: Thinpool** on that drive and name the storage
-   `radio`.
+**Check the drives before trusting them.** In Proxmox, open the host, then **Disks**, select
+each candidate and choose **Show S.M.A.R.T. values**. "PASSED" isn't enough: on SATA drives,
+`Reallocated_Sector_Ct`, `Current_Pending_Sector` and `Offline_Uncorrectable` should be 0, and on
+SAS drives (`smartctl -a`) the grown defect list should be small and every uncorrected error
+count 0. I found a drive that reported PASSED with over ten thousand pending sectors and couldn't
+read its first block.
 
-A 1 TB drive shows as about 930 GB here, because drive makers count in decimal and Proxmox
-counts in binary.
+**Behind a Dell PERC in RAID mode** (such as the H730), a new drive stays hidden from Proxmox
+until it's switched to pass-through. Dell's `perccli` (from Dell's support site, checked against
+the SHA-256 Dell publishes) shows each slot and its state:
 
-It's a single drive with no redundancy. The VM's scheduled backup (step 9) is what protects the
-music.
+```
+/opt/MegaRAID/perccli/perccli64 /c0/eall/sall show
+/opt/MegaRAID/perccli/perccli64 /c0/e32/s<slot> set jbod
+```
+
+A drive in state `UGood` can be set to JBOD. A drive in state `UGUnsp` with a size of 0 KB is
+almost always a pull from a storage array (NetApp `X425_…`, Hitachi `DKR5D-…` and the like),
+formatted with 520-byte sectors; the PERC can't use it without a low-level reformat on a plain
+SAS HBA. SMART for a drive still behind the PERC is readable with
+`smartctl -a -d megaraid,<slot> /dev/sda`.
+
+To find a drive's bay, read from it (`timeout 30 cat /dev/disk/by-id/<id> | wc -c`) and watch
+for the bay whose activity light responds. A stuck failing drive shows a solid light instead of
+a flicker.
+
+Then build the mirror: **Disks → ZFS → Create: ZFS**, name `radio`, RAID level **Mirror**,
+compression on, `ashift` 12, **Add Storage** ticked, and only the two music drives selected.
 
 ## 3. Create the VM
 
-**Create VM** in Proxmox, with:
+**Create VM** in Proxmox with **Advanced** ticked:
 
-- **General:** name `abm-radio`; tick **Start at boot**.
+- **General:** name `ABM-Radio`; tick **Start at boot**.
 - **OS:** the Ubuntu ISO from step 1.
-- **System:** tick **Qemu Agent**.
-- **Disks:** 40 GB on the fast VM storage, with **Discard** and **SSD emulation** ticked.
+- **System:** machine `q35`, SCSI controller `VirtIO SCSI single`, **Qemu Agent** ticked.
+- **Disks:** 40 GB on the fast VM storage, with **Discard**, **SSD emulation** and
+  **IO thread** ticked.
 - **CPU:** 4 cores, type `host`.
-- **Memory:** 4096 MB.
+- **Memory:** 4096 MiB.
 - **Network:** the default bridge, model VirtIO.
+- **Confirm:** leave **Start after created** unticked.
 
-Before the first boot, add the music disk: **Hardware → Add → Hard Disk**, storage `radio`, with
-nearly the whole drive (leave a few GB of headroom in the thin pool), **Discard** ticked.
+Then add the music disk: **Hardware → Add → Hard Disk**, `scsi1` on storage `radio`, 750 GB,
+**Discard** and **IO thread** ticked. 750 GB leaves the roughly 900 GB mirror below 85% full,
+where ZFS starts to slow down, and the disk can be grown later.
 
 ## 4. Install Ubuntu Server
 
