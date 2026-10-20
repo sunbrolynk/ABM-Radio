@@ -10,9 +10,10 @@
 # Written by the export scripts.
 out/
 
-# My local lists for check-public.sh; they must never be committed.
+# My local lists for check-public.sh, and my private notes; none of them is ever committed.
 .infra-names
 .blocked-words
+private/
 
 __pycache__/
 *.py[cod]

@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `ingest_fma.py` and `approve.py`, which bring Free Music Archive tracks in as pending with their
+  licence proof, then approve them in bulk.
+
+- The going-public plan: one stream hostname at my home IP, the landing page on my own site, and
+  IP-bearing logs kept about a week.
 - CC BY-ND music is accepted, played unedited. NC music never is.
 
 - `check_media.py`, which fails if any audio file on the server outside `incoming/` lacks an
