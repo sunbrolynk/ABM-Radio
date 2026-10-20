@@ -1,6 +1,7 @@
 """Runs check-public.sh against throwaway repos. The bad strings are assembled at runtime, so this
 file itself passes the check it tests."""
 
+import os
 import shutil
 import subprocess
 import tempfile
@@ -9,6 +10,9 @@ from pathlib import Path
 
 SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "check-public.sh"
 NOREPLY = "1+someone@users.noreply.github.com"
+# Git hooks export GIT_DIR, GIT_INDEX_FILE and friends; without stripping them, git commands meant
+# for the throwaway repo would act on the repo whose hook is running these tests.
+ENV = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
 
 
 class CheckPublicTest(unittest.TestCase):
@@ -23,11 +27,11 @@ class CheckPublicTest(unittest.TestCase):
         shutil.copy(SCRIPT, self.repo / "scripts" / "check-public.sh")
 
     def git(self, *args: str) -> None:
-        subprocess.run(["git", *args], cwd=self.repo, check=True, capture_output=True)
+        subprocess.run(["git", *args], cwd=self.repo, check=True, capture_output=True, env=ENV)
 
     def check(self, *args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
-            ["bash", "scripts/check-public.sh", *args], cwd=self.repo, capture_output=True, text=True
+            ["bash", "scripts/check-public.sh", *args], cwd=self.repo, capture_output=True, text=True, env=ENV
         )
 
     def staged(self, text: str | bytes, name: str = "notes.md") -> subprocess.CompletedProcess[str]:

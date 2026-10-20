@@ -43,6 +43,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- The public-check tests strip git's hook variables (`GIT_DIR` and friends). Run inside a hook,
+  they could otherwise act on the real repo instead of their throwaway one.
+
 - The ingest re-reads the catalog just before writing a track's row, so an approval made while a
   track was downloading isn't overwritten.
 
