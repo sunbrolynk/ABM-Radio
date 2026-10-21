@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- 163 more approved Lofi tracks (252 in all), from my listening so far, plus the newer pending
+  tracks: the rest of Velvet Static's first batch and every station's holiday downloads.
+
 - Wayback snapshots go through my archive.org account when its keys are on this machine, since
   anonymous saves get refused, and a refused connection is retried instead of failing the save.
   `WAYBACK=later` skips the save during a big batch, so the snapshots can follow in one slow pass.
