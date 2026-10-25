@@ -169,6 +169,24 @@ class ApproveTest(unittest.TestCase):
         (root / "evidence" / "fma-0001.json").write_text(json.dumps(ev))
         self.assertEqual(approve("shane", ["fma-0001"], self.tracks, root / "sources.csv", root / "evidence"), ["fma-0001.mp3"])
 
+    def test_kids_station_approval_needs_the_kid_safe_review(self) -> None:
+        root = self.tracks.parent
+        (root / "sources.csv").write_text("key,name,url,license_terms_url,notes\nfma,FMA,https://example.org,,\n")
+        (root / "evidence").mkdir()
+        ev = {
+            "id": "fma-0001", "source_url": "https://example.org/track", "license": "CC-BY-4.0",
+            "license_text_quote": "Licensed CC BY 4.0", "archived_url": "https://web.archive.org/web/1/https://example.org/track",
+            "captured_at": "2026-10-19T21:00:00Z", "file_sha256": "a" * 64,
+        }  # fmt: skip
+        (root / "evidence" / "fma-0001.json").write_text(json.dumps(ev))
+        write_tracks([track(status="pending", reviewed_by="", station="lilbeats")], self.tracks)
+        with self.assertRaisesRegex(ValueError, "kid_safe=yes"):
+            approve("shane", ["fma-0001"], self.tracks, root / "sources.csv", root / "evidence")
+        self.assertEqual(read_csv(self.tracks)[1][0]["status"], "pending")
+        approve("shane", ["fma-0001"], self.tracks, root / "sources.csv", root / "evidence", kid_safe=True)
+        row = read_csv(self.tracks)[1][0]
+        self.assertEqual((row["status"], row["kid_safe"]), ("approved", "yes"))
+
     def test_refuses_unknown_and_non_pending_ids(self) -> None:
         write_tracks([track()], self.tracks)
         with self.assertRaises(ValueError):
