@@ -21,6 +21,7 @@ from catalog import COLUMNS, EVIDENCE, TRACKS, read_csv, write_tracks
 from hash_files import sha256
 from ingest_fma import PAUSE_S, fetch, looks_like_mp3, next_id, wayback
 from tag_mp3 import extras, tag
+from validate import LICENSE_RE
 
 HOSTS = {"ccmixter.org"}  # pages and files both live there
 # creativecommons.org path -> (licence id prefix, human name). NC and Sampling+ are deliberately absent.
@@ -58,6 +59,8 @@ def parse_upload_page(page: str, url: str) -> dict[str, str]:
         raise ValueError(f"licence {path!r} is not one I accept")
     prefix, name = match
     licence = {"CC0": "CC0-1.0", "PD": "PD"}.get(prefix) or f"{prefix}-{version.group(1)}"
+    if not LICENSE_RE.fullmatch(licence):  # e.g. CC BY 1.0, which the catalog doesn't take
+        raise ValueError(f"licence {licence} is not one I accept")
     title = re.search(r'property="dc:title"[^>]*>([^<]+)<', box)
     artist = re.search(r'property="cc:attributionName">([^<]+)<', box)
     if not (title and artist):
@@ -111,9 +114,6 @@ def ingest(url: str, station: str, playlists: str, staging: Path) -> str:
         commercial_ok="yes", streaming_ok="yes", downloaded_at=date.today().isoformat(),
         file_name=file_name, sha256=digest, station=station, playlists=playlists, status="pending",
     )  # fmt: skip
-    # Re-read just before writing, so an approval made while this upload downloaded isn't lost.
-    _, rows = read_csv(TRACKS)
-    write_tracks([*rows, row], TRACKS)
     evidence = {
         "id": tid,
         "source_url": url,
@@ -125,6 +125,10 @@ def ingest(url: str, station: str, playlists: str, staging: Path) -> str:
         "page_metadata": meta,
     }
     (EVIDENCE / f"{tid}.json").write_text(json.dumps(evidence, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    # The row goes in last: a failure before it leaves nothing that would make a retry skip this URL.
+    # Re-read just before writing, so an approval made while this upload downloaded isn't lost.
+    _, rows = read_csv(TRACKS)
+    write_tracks([*rows, row], TRACKS)
     note = "" if archived else " (Wayback save failed; retry before approving)"
     return f"{tid}: {t['artist']} - {t['title']} [{t['license']}]{note}"
 

@@ -43,7 +43,7 @@ class ParseUploadPageTest(unittest.TestCase):
 
     def test_refuses_nc_sampling_plus_and_others(self) -> None:
         for licence in ("licenses/by-nc/3.0", "licenses/by-nc-sa/3.0", "licenses/sampling+/1.0",
-                        "licenses/nc-sampling+/1.0", "licenses/sampling/1.0", "licenses/by/3.0/us"):  # fmt: skip
+                        "licenses/nc-sampling+/1.0", "licenses/sampling/1.0", "licenses/by/3.0/us", "licenses/by/1.0"):  # fmt: skip
             with self.subTest(licence=licence), self.assertRaises(ValueError):
                 parse_upload_page(page(licence), URL)
         with self.assertRaises(ValueError):
