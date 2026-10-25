@@ -149,3 +149,11 @@ paths) live in my private notes, never here.
   attribution lines). The page must render it as text (`textContent`, or a framework's normal
   escaping), never through `innerHTML` and never inlined into a `<script>` tag.
 
+
+## The kids station only plays what I've marked kid-safe
+
+- **Chosen:** a `kid_safe` column in the catalog, and `validate.py` refuses an approved Lil' Beats FM
+  track unless it's `kid_safe=yes`. My review is the move into that station's playlist folder:
+  I listen for lyrics, covers and anything unsuitable first.
+- **Rejected:** relying on the station alone. A track approved for the wrong station, or a slip in
+  sorting, would then play to kids with nothing to catch it.
