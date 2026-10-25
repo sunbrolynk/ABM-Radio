@@ -133,13 +133,17 @@ class IngestTest(unittest.TestCase):
         rows[0]["sha256"] = "0" * 64  # pending, but built from different audio: it gets rebuilt
         write_tracks(rows, self.root / "tracks.csv")
 
-        def approve_meanwhile(url: str) -> str:
+        real_sha256 = ingest_librivox.sha256
+
+        def approve_meanwhile(path: Path) -> str:  # the first block is hashed, then I approve it
             _, now = read_csv(self.root / "tracks.csv")
             now[0]["status"] = "approved"
             write_tracks(now, self.root / "tracks.csv")
-            return "https://web.archive.org/web/1/" + url
+            return real_sha256(path)
 
-        with unittest.mock.patch.object(ingest_librivox, "get", self.fake_get("LibriVox recordings are Public Domain in the USA.")), unittest.mock.patch.object(ingest_librivox, "wayback", approve_meanwhile):
+        with unittest.mock.patch.object(ingest_librivox, "get", self.fake_get("LibriVox recordings are Public Domain in the USA.")), unittest.mock.patch.object(
+            ingest_librivox, "wayback", lambda url: "https://web.archive.org/web/1/" + url
+        ), unittest.mock.patch.object(ingest_librivox, "sha256", approve_meanwhile):
             with self.assertRaisesRegex(ValueError, "reviewed while this ran"):
                 ingest_librivox.ingest("42", "lilbeats", "fairy-tales", 20, self.root / "staging", self.root / "tracks.csv", self.root / "evidence")
         ids = [r["id"] for r in read_csv(self.root / "tracks.csv")[1]]
