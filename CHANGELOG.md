@@ -14,6 +14,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   itself, and ids starting `ccm-`. `ingest_fma.py`'s fetch can
   now send extra headers, since ccMixter refuses a file request without its page as the referrer.
 
+- `ingest_librivox.py`, which brings a LibriVox book in as pending story blocks: whole sections
+  joined into blocks of about a target length (never cut mid-section), each tagged, hashed and
+  catalogued with the book page's public-domain line and a Wayback snapshot as proof. It refuses to
+  change an approved block's audio or a book's block count, and keeps catalog edits made meanwhile
+  (a block reviewed while it ran is left alone).
+
 - A `kid_safe` column (yes, no or empty). `validate.py` refuses an approved track on Lil' Beats FM
   unless it's `kid_safe=yes`. The 187 Lil' Beats tracks I've already approved are marked yes,
   since moving a track into that station's playlist is my kid-safe review. `approve.py --kid-safe`
