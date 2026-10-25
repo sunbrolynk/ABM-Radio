@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- `ingest_ccmixter.py`, which brings ccMixter uploads in as pending the way `ingest_fma.py` does
+  for FMA: one licence per page, only CC BY, BY-SA, BY-ND, CC0 or public domain (never NC or
+  Sampling+, and no version the catalog doesn't take, such as CC BY 1.0), files only from ccMixter
+  itself, and ids starting `ccm-`. `ingest_fma.py`'s fetch can
+  now send extra headers, since ccMixter refuses a file request without its page as the referrer.
+
 - `ingest_fma.py` takes tracks marked with the Public Domain Mark (or the old public domain
   dedication) as `PD`, keeping the page's own link as the licence URL. It used to refuse them.
 

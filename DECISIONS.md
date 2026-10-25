@@ -124,6 +124,9 @@ paths) live in my private notes, never here.
   CC BY, BY-SA, BY-ND, CC0 or public domain, saves the page to the Wayback Machine and fetches the
   audio file the page's player uses. Downloading by hand was the alternative, and it doesn't scale past a few
   dozen tracks.
+- **ccMixter uploads come in through `ingest_ccmixter.py`,** built the same way. The licence is
+  read from the upload's own licence box, which must name the upload itself, and Sampling+ is
+  refused along with NC, since it only allows sharing the whole track non-commercially.
 - **The files reach the server through AzuraCast's SFTP,** into `incoming/`, with a key that only
   reaches the station's media. `approve.py` approves tracks only if the whole catalog still
   validates, and prints the moves into the playlist folder.

@@ -55,10 +55,10 @@ def check_url(url: str, hosts: set[str]) -> None:
         raise ValueError(f"refusing {url!r}: not https on {sorted(hosts)}")
 
 
-def fetch(url: str, hosts: set[str], limit: int = MAX_AUDIO_BYTES) -> tuple[bytes, str]:
+def fetch(url: str, hosts: set[str], limit: int = MAX_AUDIO_BYTES, headers: dict | None = None) -> tuple[bytes, str]:
     """Fetches url, refusing redirects off the allowed hosts and bodies over limit. Returns (body, content type)."""
     check_url(url, hosts)
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
+    with urllib.request.urlopen(urllib.request.Request(url, headers={**UA, **(headers or {})}), timeout=60) as r:
         check_url(r.geturl(), hosts)
         body = b""
         while chunk := r.read(1024 * 1024):
