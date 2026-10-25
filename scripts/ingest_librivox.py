@@ -156,7 +156,10 @@ def ingest(book_id: str, station: str, playlist: str, minutes: int, staging: Pat
         done.append(tid)
     # Re-read just before saving: the downloads take a while, and approvals may land meanwhile.
     _, rows = read_csv(tracks)
-    rows = [new.pop(r["id"], r) if r["status"] == "pending" else r for r in rows] + list(new.values())
+    reviewed = [r["id"] for r in rows if r["id"] in new and r["status"] != "pending"]
+    if reviewed:
+        raise ValueError(f"reviewed while this ran, so left as they were: {', '.join(reviewed)}")
+    rows = [new.pop(r["id"], r) for r in rows] + list(new.values())
     write_tracks(rows, tracks)
     return done
 

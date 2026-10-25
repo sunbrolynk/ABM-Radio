@@ -127,6 +127,24 @@ class IngestTest(unittest.TestCase):
             ingest_librivox.ingest("42", "lilbeats", "fairy-tales", 20, self.root / "staging", self.root / "tracks.csv", self.root / "evidence")
         self.assertEqual([r["id"] for r in read_csv(self.root / "tracks.csv")[1]], ["fma-0001", "lv-42-b01", "lv-42-b02"])
 
+    def test_refuses_a_changed_block_approved_while_it_ran(self) -> None:
+        self.run_ingest()
+        _, rows = read_csv(self.root / "tracks.csv")
+        rows[0]["sha256"] = "0" * 64  # pending, but built from different audio: it gets rebuilt
+        write_tracks(rows, self.root / "tracks.csv")
+
+        def approve_meanwhile(url: str) -> str:
+            _, now = read_csv(self.root / "tracks.csv")
+            now[0]["status"] = "approved"
+            write_tracks(now, self.root / "tracks.csv")
+            return "https://web.archive.org/web/1/" + url
+
+        with unittest.mock.patch.object(ingest_librivox, "get", self.fake_get("LibriVox recordings are Public Domain in the USA.")), unittest.mock.patch.object(ingest_librivox, "wayback", approve_meanwhile):
+            with self.assertRaisesRegex(ValueError, "reviewed while this ran"):
+                ingest_librivox.ingest("42", "lilbeats", "fairy-tales", 20, self.root / "staging", self.root / "tracks.csv", self.root / "evidence")
+        ids = [r["id"] for r in read_csv(self.root / "tracks.csv")[1]]
+        self.assertEqual(ids, ["lv-42-b01", "lv-42-b02"])
+
     def test_refuses_a_page_without_the_public_domain_line(self) -> None:
         with self.assertRaisesRegex(ValueError, "public-domain line"):
             self.run_ingest(page="<p>All rights reserved.</p>")
