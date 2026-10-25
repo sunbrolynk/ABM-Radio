@@ -11,7 +11,7 @@ OUT = ROOT / "out"
 
 COLUMNS = [
     "id", "title", "artist", "album", "source", "source_url", "license", "license_url",
-    "attribution", "commercial_ok", "streaming_ok", "downloaded_at", "file_name", "sha256",
+    "attribution", "commercial_ok", "streaming_ok", "kid_safe", "downloaded_at", "file_name", "sha256",
     "duration_s", "station", "playlists", "status", "reviewed_by", "notes",
 ]  # fmt: skip
 

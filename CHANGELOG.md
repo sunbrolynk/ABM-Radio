@@ -8,6 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- A `kid_safe` column (yes, no or empty). `validate.py` refuses an approved track on Lil' Beats FM
+  unless it's `kid_safe=yes`. The 187 Lil' Beats tracks I've already approved are marked yes,
+  since moving a track into that station's playlist is my kid-safe review.
+
 - 664 more approved tracks from my listening (916 in all): Lofi's rotation, Halloween and the
   first approved holiday folders, plus Lil' Beats FM's and Velvet Static's first music.
 

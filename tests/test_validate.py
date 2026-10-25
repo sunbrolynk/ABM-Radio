@@ -124,5 +124,16 @@ class ValidateTest(unittest.TestCase):
         self.assertFails(self.run_validate(track(status="pending", source="nowhere")), "sources.csv")
 
 
+    def test_kids_station_needs_kid_safe(self) -> None:
+        for value in ("", "no"):
+            with self.subTest(kid_safe=value):
+                errors = self.run_validate(track(station="lilbeats", kid_safe=value), evidence=self.good_evidence())
+                self.assertFails(errors, "kid_safe=yes")
+        self.assertEqual(self.run_validate(track(station="lilbeats", kid_safe="yes"), evidence=self.good_evidence()), [])
+
+    def test_kid_safe_is_yes_no_or_empty(self) -> None:
+        self.assertFails(self.run_validate(track(kid_safe="maybe"), evidence=self.good_evidence()), "kid_safe must be")
+
+
 if __name__ == "__main__":
     unittest.main()

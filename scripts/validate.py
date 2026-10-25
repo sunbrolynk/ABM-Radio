@@ -12,6 +12,8 @@ from catalog import COLUMNS, EVIDENCE, SOURCES, TRACKS, read_csv
 LICENSE_RE = re.compile(r"^(CC0-1\.0|PD|CC-BY(-SA|-ND)?-(2\.0|2\.5|3\.0|4\.0)|SITE:[a-z0-9-]+)$")
 SPOKEN_LICENSE_RE = re.compile(r"^CC-BY-NC-ND-4\.0$")
 SPOKEN_STATIONS = {"storytime"}
+# The kids station plays only what I've reviewed as kid-safe (no explicit lyrics, nothing unsuitable).
+KIDS_STATIONS = {"lilbeats"}
 # The id becomes a file name, so keep it to plain lowercase words joined by dashes.
 ID_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # A plain <id>.<ext> file name: no paths, and no control characters to break an M3U line.
@@ -52,6 +54,8 @@ def validate(tracks: Path = TRACKS, sources: Path = SOURCES, evidence: Path = EV
         for c in ("commercial_ok", "streaming_ok"):
             if r[c] not in ("yes", "no"):
                 err(f"{c} must be yes or no")
+        if r["kid_safe"] not in ("", "yes", "no"):
+            err("kid_safe must be yes, no or empty")
         if r["file_name"] and not (FILE_RE.fullmatch(r["file_name"]) and r["file_name"].startswith(tid + ".")):
             err("file_name must be <id>.<ext>, lowercase, with no path")
         if any(not ID_RE.fullmatch(p) for p in r["playlists"].split(";") if p):
@@ -76,6 +80,8 @@ def validate(tracks: Path = TRACKS, sources: Path = SOURCES, evidence: Path = EV
                 err("approved tracks need reviewed_by")
             if not r["sha256"]:
                 err("approved tracks need a sha256 (run hash_files.py)")
+            if r["station"] in KIDS_STATIONS and r["kid_safe"] != "yes":
+                err("approved tracks on a kids station need kid_safe=yes")
             errors.extend(f"tracks.csv line {line} ({tid}): {e}" for e in check_evidence(r, evidence))
     return errors
 
