@@ -111,7 +111,10 @@ def ingest(book_id: str, station: str, playlist: str, minutes: int, staging: Pat
     cache = staging / "cache" / book_id
     cache.mkdir(parents=True, exist_ok=True)
     _, rows = read_csv(tracks)
-    by_id = {r["id"]: r for r in rows}
+    known = {r["id"]: r for r in rows if r["id"].startswith(f"lv-{book_id}-b")}
+    if known and len(known) != len(blocks):
+        raise ValueError(f"lv-{book_id} is catalogued as {len(known)} blocks, this split makes {len(blocks)}: retire the old rows first")
+    new: dict[str, dict] = {}
     done = []
     for n, block in enumerate(blocks, 1):
         tid = f"lv-{book_id}-b{n:02d}"
@@ -122,12 +125,17 @@ def ingest(book_id: str, station: str, playlist: str, minutes: int, staging: Pat
                 f.write_bytes(get(s["listen_url"], MAX_SECTION_BYTES))
             audio += audio_frames(f.read_bytes())
         path = staging / f"{tid}.mp3"
-        path.write_bytes(audio)
+        tmp = path.with_suffix(".building")
+        tmp.write_bytes(audio)
         titles = "; ".join(s["title"] for s in block)
         credit = f"Read by {readers(block)} for LibriVox"
-        tag(path, f'{book["title"]}, part {n} of {len(blocks)}: {titles}', author, book["title"], f"{credit}. Public domain. {page_url}",
+        tag(tmp, f'{book["title"]}, part {n} of {len(blocks)}: {titles}', author, book["title"], f"{credit}. Public domain. {page_url}",
             {"genres": ["Audiobook"], "licence": "Public Domain", "licence_url": PD_URL, "source_url": page_url})
-        digest = sha256(path)
+        digest = sha256(tmp)
+        if tid in known and known[tid]["sha256"] != digest and known[tid]["status"] != "pending":
+            tmp.unlink()  # reviewed audio never changes under the same id
+            raise ValueError(f"{tid} would change but is already {known[tid]['status']}: retire it first")
+        tmp.replace(path)
         ev = {
             "id": tid, "source_url": page_url, "license": "PD", "license_url": PD_URL,
             "license_text_quote": PD_LINE, "archived_url": archived,
@@ -135,9 +143,7 @@ def ingest(book_id: str, station: str, playlist: str, minutes: int, staging: Pat
             "page_metadata": {"book_id": book_id, "archive_org": book.get("url_iarchive", ""), "sections": [s["section_number"] for s in block]},
         }  # fmt: skip
         (evidence / f"{tid}.json").write_text(json.dumps(ev, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        if tid in by_id:
-            by_id[tid]["sha256"] = digest  # rebuilt: same sections, so same audio
-        else:
+        if tid not in known or known[tid]["sha256"] != digest:
             row = dict.fromkeys(COLUMNS, "")
             row.update(
                 id=tid, title=f'{book["title"]}, part {n} of {len(blocks)}', artist=author, album=book["title"], source="librivox",
@@ -146,8 +152,11 @@ def ingest(book_id: str, station: str, playlist: str, minutes: int, staging: Pat
                 duration_s=str(sum(int(s["playtime"]) for s in block)), station=station, playlists=playlist, status="pending",
                 notes=f"Sections: {titles}",
             )  # fmt: skip
-            rows.append(row)
+            new[tid] = row
         done.append(tid)
+    # Re-read just before saving: the downloads take a while, and approvals may land meanwhile.
+    _, rows = read_csv(tracks)
+    rows = [new.pop(r["id"], r) if r["status"] == "pending" else r for r in rows] + list(new.values())
     write_tracks(rows, tracks)
     return done
 

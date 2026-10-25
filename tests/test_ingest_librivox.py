@@ -106,6 +106,27 @@ class IngestTest(unittest.TestCase):
         self.assertFalse([u for u in self.fetched if u.endswith(".mp3")])
         self.assertEqual(len(read_csv(self.root / "tracks.csv")[1]), 2)
 
+    def test_refuses_to_change_reviewed_audio_or_the_split(self) -> None:
+        self.run_ingest()
+        _, rows = read_csv(self.root / "tracks.csv")
+        rows[0].update(status="approved", sha256="0" * 64)  # as if approved from different audio
+        write_tracks(rows, self.root / "tracks.csv")
+        with self.assertRaisesRegex(ValueError, "already approved"):
+            self.run_ingest()
+        self.assertTrue((self.root / "staging" / "lv-42-b01.mp3").is_file())  # the reviewed file stays put
+        self.BOOK = {**self.BOOK, "sections": self.BOOK["sections"][:2]}
+        with self.assertRaisesRegex(ValueError, "retire the old rows"):
+            self.run_ingest()
+
+    def test_keeps_catalog_edits_made_while_downloading(self) -> None:
+        def approve_meanwhile(url: str) -> str:
+            write_tracks([{**dict.fromkeys(COLUMNS, ""), "id": "fma-0001", "status": "approved"}], self.root / "tracks.csv")
+            return "https://web.archive.org/web/1/" + url
+
+        with unittest.mock.patch.object(ingest_librivox, "get", self.fake_get("LibriVox recordings are Public Domain in the USA.")), unittest.mock.patch.object(ingest_librivox, "wayback", approve_meanwhile):
+            ingest_librivox.ingest("42", "lilbeats", "fairy-tales", 20, self.root / "staging", self.root / "tracks.csv", self.root / "evidence")
+        self.assertEqual([r["id"] for r in read_csv(self.root / "tracks.csv")[1]], ["fma-0001", "lv-42-b01", "lv-42-b02"])
+
     def test_refuses_a_page_without_the_public_domain_line(self) -> None:
         with self.assertRaisesRegex(ValueError, "public-domain line"):
             self.run_ingest(page="<p>All rights reserved.</p>")
