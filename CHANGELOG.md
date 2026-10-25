@@ -10,7 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - `ingest_ccmixter.py`, which brings ccMixter uploads in as pending the way `ingest_fma.py` does
   for FMA: one licence per page, only CC BY, BY-SA, BY-ND, CC0 or public domain (never NC or
-  Sampling+), files only from ccMixter itself, and ids starting `ccm-`. `ingest_fma.py`'s fetch can
+  Sampling+, and no version the catalog doesn't take, such as CC BY 1.0), files only from ccMixter
+  itself, and ids starting `ccm-`. `ingest_fma.py`'s fetch can
   now send extra headers, since ccMixter refuses a file request without its page as the referrer.
 
 - A `kid_safe` column (yes, no or empty). `validate.py` refuses an approved track on Lil' Beats FM
