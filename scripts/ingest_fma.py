@@ -42,6 +42,9 @@ LICENCES = {
     "licenses/by-sa/": ("CC-BY-SA", "CC BY-SA"),
     "licenses/by-nd/": ("CC-BY-ND", "CC BY-ND"),
     "publicdomain/zero/": ("CC0", "CC0"),
+    # The Public Domain Mark, and the old dedication it replaced: no version needed, both are PD.
+    "publicdomain/mark/": ("PD", "Public Domain"),
+    "licenses/publicdomain": ("PD", "Public Domain"),
 }
 
 
@@ -84,17 +87,17 @@ def parse_track_page(page: str, url: str) -> dict[str, str]:
     path = link.group(1)
     match = next((v for k, v in LICENCES.items() if path.startswith(k)), None)
     version = re.search(r"/(\d\.\d)$", path)
-    if not match or not version:
+    if not match or not (version or match[0] == "PD"):
         raise ValueError(f"licence {path!r} is not one I accept")
     prefix, name = match
-    licence = "CC0-1.0" if prefix == "CC0" else f"{prefix}-{version.group(1)}"
+    licence = {"CC0": "CC0-1.0", "PD": "PD"}.get(prefix) or f"{prefix}-{version.group(1)}"
     deed = f"https://creativecommons.org/{path}/"
     block = page[page.find(">", link.end()) + 1 : page.find("</div>", link.end())]
     quote = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", block))).strip()
     quote = re.sub(r"\s+([.,])", r"\1", quote)
     title, artist = info["title"].strip(), info["artistName"].strip()
     album = "" if info.get("albumTitle", "-") in ("-", "") else info["albumTitle"].strip()
-    credit = name if prefix == "CC0" else f"{name} {version.group(1)}"
+    credit = name if prefix in ("CC0", "PD") else f"{name} {version.group(1)}"
     return {
         "title": title,
         "artist": artist,
