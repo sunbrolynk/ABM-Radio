@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- 664 more approved tracks from my listening (916 in all): Lofi's rotation, Halloween and the
+  first approved holiday folders, plus Lil' Beats FM's and Velvet Static's first music.
+
 - 163 more approved Lofi tracks (252 in all), from my listening so far, plus the newer pending
   tracks: the rest of Velvet Static's first batch and every station's holiday downloads.
 
