@@ -45,6 +45,10 @@ paths) live in my private notes, never here.
   derivative work. Crossfading two tracks and levelling loudness are normal broadcast handling,
   not remixing, so I treat them as playing the work unmodified. Rejected: dropping ND entirely,
   which would cost tracks for no real gain.
+- **The Public Domain Mark counts as public domain (`PD`).** The Mark isn't a licence, it's a
+  statement that the work is free of known copyright. I accept it like CC0, and the older
+  `licenses/publicdomain` dedication with it, but the evidence must still show the mark on the
+  track's own page, not just on the album or the artist.
 - **Removal requests** go to admin@audiobookmanager.com, the address already on the README and
   SECURITY.md.
 
@@ -117,8 +121,8 @@ paths) live in my private notes, never here.
 
 - **Free Music Archive tracks come in through `ingest_fma.py`,** one at a time with a pause
   between them. It reads the track page's own data and licence link, refuses anything that isn't
-  CC BY, BY-SA, BY-ND or CC0, saves the page to the Wayback Machine and fetches the audio file the
-  page's player uses. Downloading by hand was the alternative, and it doesn't scale past a few
+  CC BY, BY-SA, BY-ND, CC0 or public domain, saves the page to the Wayback Machine and fetches the
+  audio file the page's player uses. Downloading by hand was the alternative, and it doesn't scale past a few
   dozen tracks.
 - **ccMixter uploads come in through `ingest_ccmixter.py`,** built the same way. The licence is
   read from the upload's own licence box, which must name the upload itself, and Sampling+ is

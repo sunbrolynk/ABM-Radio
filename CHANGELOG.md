@@ -14,6 +14,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   itself, and ids starting `ccm-`. `ingest_fma.py`'s fetch can
   now send extra headers, since ccMixter refuses a file request without its page as the referrer.
 
+- `ingest_fma.py` takes tracks marked with the Public Domain Mark (or the old public domain
+  dedication) as `PD`, keeping the page's own link as the licence URL. It used to refuse them.
+
 - `ingest_librivox.py`, which brings a LibriVox book in as pending story blocks: whole sections
   joined into blocks of about a target length (never cut mid-section), each tagged, hashed and
   catalogued with the book page's public-domain line and a Wayback snapshot as proof. It refuses to
