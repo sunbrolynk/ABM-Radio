@@ -9,6 +9,7 @@ One URL per line (https://ccmixter.org/files/<user>/<number>); blank lines and l
 between them. Nothing here touches the radio server.
 """
 
+# Python Imports
 import html
 import json
 import re
@@ -17,6 +18,7 @@ import time
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+# Local Imports
 from catalog import COLUMNS, EVIDENCE, TRACKS, read_csv, write_tracks
 from hash_files import sha256
 from ingest_fma import PAUSE_S, fetch, looks_like_mp3, next_id, wayback

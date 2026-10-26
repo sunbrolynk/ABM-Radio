@@ -1,3 +1,5 @@
+# Python Imports
+import json
 import sys
 import tempfile
 import unittest
@@ -5,7 +7,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
+# Local Imports
+from catalog import read_csv, write_tracks  # noqa: E402
 from tag_mp3 import _frame, _split, _syncsafe, apic_image, fix_approved_art, image_mime, licence_name, read_tags, tag  # noqa: E402
+from test_validate import track  # noqa: E402
 
 AUDIO = b"\xff\xfb\x90\x64" + b"\x00" * 400
 JPEG = b"\xff\xd8\xff\xe0" + b"jpeg-data"
@@ -107,10 +112,6 @@ class TagTest(unittest.TestCase):
 
 class FixApprovedArtTest(unittest.TestCase):
     def test_only_the_cover_changes_and_the_hash_is_recorded(self) -> None:
-        import json
-        from catalog import read_csv, write_tracks
-        from test_validate import track
-
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             staging, evidence = root / "staging", root / "evidence"

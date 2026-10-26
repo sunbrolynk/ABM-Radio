@@ -14,6 +14,7 @@ Wayback Machine. Nothing here touches the radio server: the staged files are upl
 incoming/ folder afterwards.
 """
 
+# Python Imports
 import html
 import json
 import os
@@ -25,6 +26,7 @@ import urllib.request
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+# Local Imports
 from catalog import COLUMNS, EVIDENCE, TRACKS, read_csv, write_tracks
 from hash_files import sha256
 from tag_mp3 import extras, image_mime, tag, tag_pending

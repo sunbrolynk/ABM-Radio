@@ -9,6 +9,7 @@ are cached in <staging dir>/cache/<id>/, so building the same book again fetches
 byte-identical blocks. Joining needs no re-encoding: one recording's sections share their format.
 """
 
+# Python Imports
 import json
 import re
 import sys
@@ -17,6 +18,7 @@ import urllib.request
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+# Local Imports
 from catalog import COLUMNS, EVIDENCE, TRACKS, read_csv, write_tracks
 from hash_files import sha256
 from ingest_fma import wayback

@@ -7,9 +7,11 @@ New files wait in incoming/ (a folder linked to no playlist) until their row is 
 move into a playlist folder. Exits 1 on any file that shouldn't be playing.
 """
 
+# Python Imports
 import sys
 from pathlib import Path
 
+# Local Imports
 from catalog import TRACKS, approved, read_csv
 from hash_files import sha256
 

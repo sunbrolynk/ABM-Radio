@@ -1,10 +1,12 @@
 """Checks tracks.csv and the evidence files. Exits 1 on any problem, so it can gate commits."""
 
+# Python Imports
 import json
 import re
 import sys
 from pathlib import Path
 
+# Local Imports
 from catalog import COLUMNS, EVIDENCE, SOURCES, TRACKS, read_csv
 
 # What I accept is written up in LICENSES.md. ND plays unedited; NC never goes in the music.

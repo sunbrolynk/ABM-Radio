@@ -1,3 +1,4 @@
+# Python Imports
 import json
 import sys
 import tempfile
@@ -7,6 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
+# Local Imports
 import ingest_librivox  # noqa: E402
 from catalog import COLUMNS, read_csv, write_tracks  # noqa: E402
 from ingest_librivox import allowed, audio_frames, frame_len, plan  # noqa: E402

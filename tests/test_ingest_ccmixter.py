@@ -1,3 +1,4 @@
+# Python Imports
 import json
 import sys
 import tempfile
@@ -7,8 +8,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
-from catalog import COLUMNS, read_csv, write_tracks  # noqa: E402
+# Local Imports
 import ingest_ccmixter  # noqa: E402
+from catalog import COLUMNS, read_csv, write_tracks  # noqa: E402
 from ingest_ccmixter import parse_upload_page  # noqa: E402
 from test_validate import track  # noqa: E402
 from validate import validate  # noqa: E402

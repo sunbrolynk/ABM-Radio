@@ -9,12 +9,14 @@ The extras come from the evidence file's page_metadata, and the cover from <id>.
 Approved rows are never touched: their files are the ones I reviewed.
 """
 
+# Python Imports
 import json
 import re
 import struct
 import sys
 from pathlib import Path
 
+# Local Imports
 from catalog import EVIDENCE, TRACKS, read_csv, write_tracks
 from hash_files import sha256
 
