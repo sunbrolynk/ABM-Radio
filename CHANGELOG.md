@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Story Time books:** 71 LibriVox books as 807 pending story blocks for Lil' Beats FM and
+  Velvet Static, each with the book page's public-domain line and a Wayback snapshot as proof.
+- **More music waiting for review:** tracks marked with the Public Domain Mark and Velvet Static's
+  first ccMixter tracks, plus 12 more approvals.
+
 - `ingest_ccmixter.py`, which brings ccMixter uploads in as pending the way `ingest_fma.py` does
   for FMA: one licence per page, only CC BY, BY-SA, BY-ND, CC0 or public domain (never NC or
   Sampling+, and no version the catalog doesn't take, such as CC BY 1.0), files only from ccMixter
