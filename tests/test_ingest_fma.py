@@ -1,3 +1,4 @@
+# Python Imports
 import json
 import sys
 import tempfile
@@ -7,9 +8,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
+# Local Imports
+import ingest_fma  # noqa: E402
 from approve import approve  # noqa: E402
 from catalog import read_csv, write_tracks  # noqa: E402
-import ingest_fma  # noqa: E402
 from ingest_fma import check_url, cover_url, looks_like_mp3, next_id, page_metadata, parse_track_page  # noqa: E402
 from test_validate import track  # noqa: E402
 
@@ -41,6 +43,15 @@ class ParseTrackPageTest(unittest.TestCase):
         self.assertEqual(parse_track_page(page("licenses/by-sa/3.0"), URL)["license"], "CC-BY-SA-3.0")
         self.assertEqual(parse_track_page(page("licenses/by-nd/4.0"), URL)["license"], "CC-BY-ND-4.0")
         self.assertEqual(parse_track_page(page("publicdomain/zero/1.0"), URL)["license"], "CC0-1.0")
+
+    def test_maps_the_public_domain_mark_and_old_dedication_to_pd(self) -> None:
+        for licence in ("publicdomain/mark/1.0", "licenses/publicdomain"):
+            with self.subTest(licence=licence):
+                t = parse_track_page(page(licence), URL)
+                self.assertEqual((t["license"], t["license_url"]), ("PD", f"https://creativecommons.org/{licence}/"))
+                self.assertEqual(t["attribution"], '"Café Song" by Popoi, Public Domain')
+        with self.assertRaises(ValueError):
+            parse_track_page(page("publicdomain/certification/1.0"), URL)
 
     def test_refuses_nc_and_missing_licences(self) -> None:
         for licence in ("licenses/by-nc/4.0", "licenses/by-nc-sa/4.0", "licenses/by-nc-nd/4.0"):

@@ -1,6 +1,7 @@
 """Runs check-public.sh against throwaway repos. The bad strings are assembled at runtime, so this
 file itself passes the check it tests."""
 
+# Python Imports
 import os
 import shutil
 import subprocess

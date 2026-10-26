@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Fail when a commit in a range changes product code without a CHANGELOG.md
-# entry. A product commit is covered when it, or a later commit in the range
-# built on top of it, changes CHANGELOG.md; a changelog commit that came before
-# it never covers it. A genuinely internal commit (a refactor, tooling) opts
-# out with a `Changelog: none` trailer.
+# Fail when a commit in a range changes product code without a changelog
+# entry. An entry is a CHANGELOG.md edit or a changelog.d/<slug>.<section>.md
+# fragment added or changed. A product commit is covered when it, or a later
+# commit in the range built on top of it, writes an entry; a changelog commit
+# that came before it never covers it. A genuinely internal commit (a refactor,
+# tooling) opts out with a `Changelog: none` trailer.
 #
 # Usage: scripts/check-changelog.sh [<range>]
 # <range> is git rev-list arguments, e.g. `main..feature` or
@@ -29,6 +30,15 @@ read -ra revs <<< "$range"
 echo "  range: $range"
 
 product_paths=(':(glob)scripts/**')
+# Only the section names collate-changelog.py folds, so a misnamed fragment is
+# no entry. Deleting a fragment (folding it into CHANGELOG.md) documents
+# nothing, so deletions never count as one (--diff-filter=ACMRT below).
+entry_paths=(CHANGELOG.md)
+for section in added changed fixed removed security; do
+    entry_paths+=(":(glob)changelog.d/*.${section}.md")
+done
+# The same names collate-changelog.py accepts: one dot-free slug, no hidden files.
+entry_paths+=(":(exclude,glob)changelog.d/*.*.*.md" ":(exclude,glob)changelog.d/.*")
 
 # --full-history: without it, a merge that matches one parent hides the
 # commits on its other side.
@@ -38,16 +48,16 @@ if [[ -z "$product_commits" ]]; then
     exit 0
 fi
 
-changelog_commits="$(git log --full-history --no-merges --format=%H "${revs[@]}" -- CHANGELOG.md)"
-changelog_merges="$(git log --full-history --merges --format=%H "${revs[@]}" -- CHANGELOG.md)"
+changelog_commits="$(git log --full-history --no-merges --diff-filter=ACMRT --format=%H "${revs[@]}" -- "${entry_paths[@]}")"
+changelog_merges="$(git log --full-history --merges --format=%H "${revs[@]}" -- "${entry_paths[@]}")"
 
 fail() {
     echo "  ! $1" >&2
     exit 2
 }
 
-# A merge counts only when it writes an entry of its own, i.e. its CHANGELOG.md
-# differs from every parent's; one that just brings in another branch's entry
+# A merge counts only when it writes an entry of its own, i.e. its entries
+# differ from every parent's; one that just brings in another branch's entry
 # does not document this branch's commits.
 while read -r merge; do
     [[ -n "$merge" ]] || continue
@@ -58,11 +68,11 @@ while read -r merge; do
     while read -r parent; do
         compared=$((compared + 1))
         status=0
-        git diff --quiet "$parent" "$merge" -- CHANGELOG.md || status=$?
+        git diff --quiet --diff-filter=ACMRT "$parent" "$merge" -- "${entry_paths[@]}" || status=$?
         case "$status" in
             0) break ;;
             1) differing=$((differing + 1)) ;;
-            *) fail "could not compare CHANGELOG.md between $parent and $merge" ;;
+            *) fail "could not compare changelog entries between $parent and $merge" ;;
         esac
     done <<< "$parents"
     if [[ "$compared" -gt 0 && "$differing" -eq "$compared" ]]; then
@@ -95,15 +105,16 @@ while read -r sha; do
 done <<< "$product_commits"
 
 if [[ ${#missing[@]} -eq 0 ]]; then
-    echo "  every product-code commit has a CHANGELOG.md entry or 'Changelog: none'"
+    echo "  every product-code commit has a changelog entry or 'Changelog: none'"
     exit 0
 fi
 
-echo "  ! product code changed with no CHANGELOG.md entry in or after these commits:" >&2
+echo "  ! product code changed with no changelog entry in or after these commits:" >&2
 for sha in "${missing[@]}"; do
     summary="$(git log -1 --format='%h %s' "$sha")"
     echo "      $summary" >&2
 done
-echo "  Add a CHANGELOG.md entry, or, for a change with no user-visible effect," >&2
+echo "  Add a changelog.d/<slug>.<section>.md fragment (or a CHANGELOG.md entry), or," >&2
+echo "  for a change with no user-visible effect," >&2
 echo "  add the trailer 'Changelog: none' to each commit listed." >&2
 exit 1

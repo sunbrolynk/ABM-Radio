@@ -7,11 +7,13 @@ empty file_sha256. A hash that changed on an approved track is reported and left
 file is no longer the one I reviewed.
 """
 
+# Python Imports
 import hashlib
 import json
 import sys
 from pathlib import Path
 
+# Local Imports
 from catalog import COLUMNS, EVIDENCE, TRACKS, read_csv, write_tracks
 
 

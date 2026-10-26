@@ -1,5 +1,6 @@
 """Shared bits for the catalog scripts: paths, columns, and reading/writing tracks.csv."""
 
+# Python Imports
 import csv
 from pathlib import Path
 

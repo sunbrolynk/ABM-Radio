@@ -14,6 +14,7 @@ Wayback Machine. Nothing here touches the radio server: the staged files are upl
 incoming/ folder afterwards.
 """
 
+# Python Imports
 import html
 import json
 import os
@@ -25,6 +26,7 @@ import urllib.request
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+# Local Imports
 from catalog import COLUMNS, EVIDENCE, TRACKS, read_csv, write_tracks
 from hash_files import sha256
 from tag_mp3 import extras, image_mime, tag, tag_pending
@@ -42,6 +44,9 @@ LICENCES = {
     "licenses/by-sa/": ("CC-BY-SA", "CC BY-SA"),
     "licenses/by-nd/": ("CC-BY-ND", "CC BY-ND"),
     "publicdomain/zero/": ("CC0", "CC0"),
+    # The Public Domain Mark, and the old dedication it replaced: no version needed, both are PD.
+    "publicdomain/mark/": ("PD", "Public Domain"),
+    "licenses/publicdomain": ("PD", "Public Domain"),
 }
 
 
@@ -52,10 +57,10 @@ def check_url(url: str, hosts: set[str]) -> None:
         raise ValueError(f"refusing {url!r}: not https on {sorted(hosts)}")
 
 
-def fetch(url: str, hosts: set[str], limit: int = MAX_AUDIO_BYTES) -> tuple[bytes, str]:
+def fetch(url: str, hosts: set[str], limit: int = MAX_AUDIO_BYTES, headers: dict | None = None) -> tuple[bytes, str]:
     """Fetches url, refusing redirects off the allowed hosts and bodies over limit. Returns (body, content type)."""
     check_url(url, hosts)
-    with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=60) as r:
+    with urllib.request.urlopen(urllib.request.Request(url, headers={**UA, **(headers or {})}), timeout=60) as r:
         check_url(r.geturl(), hosts)
         body = b""
         while chunk := r.read(1024 * 1024):
@@ -84,17 +89,17 @@ def parse_track_page(page: str, url: str) -> dict[str, str]:
     path = link.group(1)
     match = next((v for k, v in LICENCES.items() if path.startswith(k)), None)
     version = re.search(r"/(\d\.\d)$", path)
-    if not match or not version:
+    if not match or not (version or match[0] == "PD"):
         raise ValueError(f"licence {path!r} is not one I accept")
     prefix, name = match
-    licence = "CC0-1.0" if prefix == "CC0" else f"{prefix}-{version.group(1)}"
+    licence = {"CC0": "CC0-1.0", "PD": "PD"}.get(prefix) or f"{prefix}-{version.group(1)}"
     deed = f"https://creativecommons.org/{path}/"
     block = page[page.find(">", link.end()) + 1 : page.find("</div>", link.end())]
     quote = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", block))).strip()
     quote = re.sub(r"\s+([.,])", r"\1", quote)
     title, artist = info["title"].strip(), info["artistName"].strip()
     album = "" if info.get("albumTitle", "-") in ("-", "") else info["albumTitle"].strip()
-    credit = name if prefix == "CC0" else f"{name} {version.group(1)}"
+    credit = name if prefix in ("CC0", "PD") else f"{name} {version.group(1)}"
     return {
         "title": title,
         "artist": artist,

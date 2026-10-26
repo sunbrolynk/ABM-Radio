@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- **Story Time books:** 71 LibriVox books as 807 pending story blocks for Lil' Beats FM and
+  Velvet Static, each with the book page's public-domain line and a Wayback snapshot as proof.
+- **More music waiting for review:** tracks marked with the Public Domain Mark and Velvet Static's
+  first ccMixter tracks, plus 12 more approvals.
+
+- `ingest_ccmixter.py`, which brings ccMixter uploads in as pending the way `ingest_fma.py` does
+  for FMA: one licence per page, only CC BY, BY-SA, BY-ND, CC0 or public domain (never NC or
+  Sampling+, and no version the catalog doesn't take, such as CC BY 1.0), files only from ccMixter
+  itself, and ids starting `ccm-`. `ingest_fma.py`'s fetch can
+  now send extra headers, since ccMixter refuses a file request without its page as the referrer.
+
+- `ingest_fma.py` takes tracks marked with the Public Domain Mark (or the old public domain
+  dedication) as `PD`, keeping the page's own link as the licence URL. It used to refuse them.
+
+- `ingest_librivox.py`, which brings a LibriVox book in as pending story blocks: whole sections
+  joined into blocks of about a target length (never cut mid-section), each tagged, hashed and
+  catalogued with the book page's public-domain line and a Wayback snapshot as proof. It refuses to
+  change an approved block's audio or a book's block count, and keeps catalog edits made meanwhile
+  (a block reviewed while it ran is left alone).
+
 - A `kid_safe` column (yes, no or empty). `validate.py` refuses an approved track on Lil' Beats FM
   unless it's `kid_safe=yes`. The 187 Lil' Beats tracks I've already approved are marked yes,
   since moving a track into that station's playlist is my kid-safe review. `approve.py --kid-safe`
