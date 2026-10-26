@@ -5,14 +5,15 @@
 Work on a branch off `dev` and open a pull request into `dev`; `dev` reaches `main` in a release
 pull request. Explain the problem, the change and how you verified it.
 
-Install the hooks once with `bash scripts/install-hooks.sh`, then let them run on every commit and
-push:
+Install the hooks once with `bash scripts/install-hooks.sh`, and build the lint tools once with
+`bash scripts/setup-tooling.sh` (ruff from the hash-pinned `requirements-tooling.lock`, in
+`.venv-tooling/`), then let them run on every commit and push:
 
 - **pre-commit:** the secret scan, the public-repo check (no home-network details, no writing that
-  isn't mine) and the catalog validator, on what's staged.
+  isn't mine), the catalog validator and ruff, on what's staged.
 - **commit-msg:** the public-repo check on the message.
 - **pre-push:** the secret scan and public-repo check over the whole history, the changelog check
-  over the commits being pushed, the script tests and the catalog validator, on a clean tree.
+  over the commits being pushed, ruff, the script tests and the catalog validator, on a clean tree.
 
 Every one has to pass; don't push with `--no-verify`. CI runs the same checks again on the pull
 request, apart from my local lists of names and wording.
