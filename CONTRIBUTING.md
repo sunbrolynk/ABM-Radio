@@ -18,7 +18,11 @@ Every one has to pass; don't push with `--no-verify`. CI runs the same checks ag
 request, apart from my local lists of names and wording.
 
 New logic comes with tests in the same pull request. Every commit that changes `scripts/` needs a
-`CHANGELOG.md` entry under `Unreleased`, in it or in a later commit on the branch; one with no
+changelog entry, in it or in a later commit on the branch: a `changelog.d/<slug>.<section>.md` file
+(a short name such as the branch name without its `feat/` prefix; section `added`, `changed`,
+`fixed`, `removed` or `security`) holding the bullet as it should read, bold lead phrase first, so
+parallel pull requests don't conflict in `CHANGELOG.md`. I fold them in under `Unreleased` at
+release time with `python3 scripts/collate-changelog.py` (`--dry-run` to preview). A commit with no
 effect anyone would notice opts out with a `Changelog: none` trailer.
 
 ## Tracks and books
