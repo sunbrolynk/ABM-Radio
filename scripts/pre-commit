@@ -18,3 +18,17 @@ snapshot="$(mktemp -d)"
 trap 'rm -rf "$snapshot"' EXIT
 git checkout-index --all --prefix="$snapshot/"
 python3 "$snapshot/scripts/validate.py"
+
+echo "Linting the staged scripts and tests..."
+# Each branch's own pyproject.toml decides whether ruff runs, so a branch from before the lint gate isn't held to it.
+# A worktree without its own tooling venv uses the main checkout's.
+ruff=.venv-tooling/bin/ruff
+[[ -x "$ruff" ]] || ruff="$(git rev-parse --path-format=absolute --git-common-dir)/../.venv-tooling/bin/ruff"
+if [[ ! -f "$snapshot/pyproject.toml" ]]; then
+    echo "No pyproject.toml on this branch, so no lint gate to run."
+elif [[ ! -x "$ruff" ]]; then
+    echo "ruff is missing: run bash scripts/setup-tooling.sh once, then retry." >&2
+    exit 1
+else
+    "$ruff" check --no-cache --config "$snapshot/pyproject.toml" "$snapshot/scripts/" "$snapshot/tests/"
+fi
