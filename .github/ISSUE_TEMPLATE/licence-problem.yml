@@ -1,0 +1,22 @@
+name: Licence or credit problem
+description: A track's licence, credit or source looks wrong.
+labels: [licence]
+body:
+  - type: input
+    id: track
+    attributes:
+      label: Track
+      description: The catalog id (e.g. fma-0001), or the title and artist.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's wrong
+      description: The licence, the credit line, or the source link, and what it should be.
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: A link that shows it
