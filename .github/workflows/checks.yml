@@ -32,6 +32,11 @@ jobs:
         if: github.event_name == 'pull_request'
         run: bash scripts/check-changelog.sh "origin/${GITHUB_BASE_REF}..HEAD"
 
+      - name: Lint the scripts and tests with ruff
+        run: |
+          bash scripts/setup-tooling.sh
+          .venv-tooling/bin/ruff check scripts/ tests/
+
       - name: Run the script tests
         run: python3 -m unittest discover -s tests
 
