@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- **Story Time books:** 67 LibriVox books as 807 pending story blocks for Lil' Beats FM and
+- **Story Time books:** 71 LibriVox books as 807 pending story blocks for Lil' Beats FM and
   Velvet Static, each with the book page's public-domain line and a Wayback snapshot as proof.
 - **More music waiting for review:** tracks marked with the Public Domain Mark and Velvet Static's
   first ccMixter tracks, plus 12 more approvals.
