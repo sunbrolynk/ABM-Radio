@@ -1,4 +1,9 @@
-# Lint settings only; the scripts are plain files run with python3, not a package.
+[project]
+name = "abm-radio"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+# The [project] table only carries the release version; the scripts are plain files run with python3, not a package.
 [tool.ruff]
 target-version = "py312"
 # The scripts import each other and the tests import both, so all of them sort as first-party.
