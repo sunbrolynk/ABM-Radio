@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-25
+
+This is the first numbered release of ABM Radio. It holds the catalog and the licence proof for
+every track and story block on my three stations, ABM Lofi, Lil' Beats FM and Velvet Static, plus
+the ingest scripts that bring music in from FMA and ccMixter and story blocks in from LibriVox. It
+also carries the gates that check every row and every commit before anything can go on air.
+
 ### Added
 
 - **Story Time books:** 71 LibriVox books as 807 pending story blocks for Lil' Beats FM and
@@ -88,6 +95,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The public-repo check also blocks link-local and IPv6 private addresses, Tailscale and other
   LAN hostnames, dotless hosts after any URL scheme, LAN and home-folder paths, binary files, and
   commit emails that aren't GitHub no-reply addresses.
+
+- **Changelog fragments:** a change can add one `changelog.d/<slug>.<section>.md` file holding its
+  bullet instead of editing `CHANGELOG.md`, so parallel pull requests stop conflicting there.
+  `collate-changelog.py` folds them under `[Unreleased]` at release time, and `check-changelog.sh`
+  takes a fragment as coverage the same way it takes a `CHANGELOG.md` entry.
+
+- **Lint gate:** ruff now checks `scripts/` and `tests/` in the pre-commit and pre-push hooks and in
+  CI, with its rule set pinned in `pyproject.toml` and the binary installed from the hash-pinned
+  `requirements-tooling.lock` by `scripts/setup-tooling.sh`, so I run the same ruff everywhere.
 
 ### Fixed
 
