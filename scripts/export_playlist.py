@@ -3,9 +3,11 @@
 Refuses to run on a catalog that fails validate.py, so nothing unchecked goes on air.
 """
 
+# Python Imports
 import sys
 from pathlib import Path
 
+# Local Imports
 from catalog import OUT, TRACKS, approved, read_csv
 from validate import validate
 

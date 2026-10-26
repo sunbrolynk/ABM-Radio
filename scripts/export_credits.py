@@ -3,10 +3,12 @@
 Refuses to run on a catalog that fails validate.py, so nothing unchecked reaches the credits.
 """
 
+# Python Imports
 import json
 import sys
 from pathlib import Path
 
+# Local Imports
 from catalog import OUT, TRACKS, approved, read_csv
 from validate import validate
 

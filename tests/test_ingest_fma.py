@@ -1,3 +1,4 @@
+# Python Imports
 import json
 import sys
 import tempfile
@@ -7,9 +8,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
+# Local Imports
+import ingest_fma  # noqa: E402
 from approve import approve  # noqa: E402
 from catalog import read_csv, write_tracks  # noqa: E402
-import ingest_fma  # noqa: E402
 from ingest_fma import check_url, cover_url, looks_like_mp3, next_id, page_metadata, parse_track_page  # noqa: E402
 from test_validate import track  # noqa: E402
 

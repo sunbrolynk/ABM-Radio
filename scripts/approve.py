@@ -8,8 +8,10 @@ catalog is left untouched. The printed `rename incoming/<file> <folder>/<file>` 
 sftp's batch mode (`sftp -b -`) to move the files into the playlist folder.
 """
 
+# Python Imports
 import sys
 
+# Local Imports
 from catalog import EVIDENCE, SOURCES, TRACKS, read_csv, write_tracks
 from validate import validate
 
