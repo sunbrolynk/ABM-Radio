@@ -1,3 +1,4 @@
+# Python Imports
 import json
 import shutil
 import subprocess
@@ -8,10 +9,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 
+# Local Imports
 from catalog import read_csv, write_tracks  # noqa: E402
+from check_media import check_media  # noqa: E402
 from export_credits import export_credits  # noqa: E402
 from export_playlist import export_playlists  # noqa: E402
-from check_media import check_media  # noqa: E402
 from hash_files import hash_files, sha256  # noqa: E402
 from test_validate import track  # noqa: E402
 
