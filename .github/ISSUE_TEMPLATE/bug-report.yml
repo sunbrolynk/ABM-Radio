@@ -18,9 +18,10 @@ body:
     id: steps
     attributes:
       label: Steps to reproduce
-      description: The command you ran and the track or file it ran on.
+      description: The command you ran and the track or file it ran on. Leave out keys, hostnames and paths on your own machine.
   - type: textarea
     id: output
     attributes:
       label: Output or log
+      description: Strip keys, hostnames and paths on your own machine before pasting.
       render: text

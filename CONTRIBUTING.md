@@ -9,12 +9,13 @@ Install the hooks once with `bash scripts/install-hooks.sh`, then let them run o
 push:
 
 - **pre-commit:** the secret scan, the public-repo check (no home-network details, no writing that
-  isn't mine) and the catalog validator.
-- **pre-push:** the same over the whole outgoing range, plus the script tests and the changelog
-  check.
+  isn't mine) and the catalog validator, on what's staged.
+- **commit-msg:** the public-repo check on the message.
+- **pre-push:** the secret scan and public-repo check over the whole history, the changelog check
+  over the commits being pushed, the script tests and the catalog validator, on a clean tree.
 
 Every one has to pass; don't push with `--no-verify`. CI runs the same checks again on the pull
-request.
+request, apart from my local lists of names and wording.
 
 New logic comes with tests in the same pull request. Every commit that changes `scripts/` needs a
 `CHANGELOG.md` entry under `Unreleased`, in it or in a later commit on the branch; one with no
@@ -23,9 +24,9 @@ effect anyone would notice opts out with a `Changelog: none` trailer.
 ## Tracks and books
 
 Every item in `catalog/tracks.csv` needs its licence read from its own page, the sentence that
-grants use quoted in `evidence/<id>.json`, and a Wayback snapshot of that page. Music must be CC BY,
-BY-SA, BY-ND, CC0 or public domain; nothing NonCommercial. Bring items in with the `ingest_*.py`
-scripts rather than by hand, and never commit audio.
+grants use quoted in `evidence/<id>.json`, and a Wayback snapshot of that page. Music must be under a
+licence listed in [LICENSES.md](LICENSES.md); nothing NonCommercial. Bring items in with an
+`ingest_*.py` script where one exists for the source, and never commit audio.
 
 ## Commit messages
 
