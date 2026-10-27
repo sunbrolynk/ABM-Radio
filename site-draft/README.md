@@ -1,7 +1,7 @@
 # Site draft: radio.audiobookmanager.com
 
 My draft for the station page, for the
-[audiobookmanager.com](https://github.com/sunbrolynk/audiobookmanager.com) repo to build from. It's a
+[audiobookmanager.com](https://github.com/sunbrolynk/AudioBookManager.com) repo to build from. It's a
 starting point to shape, not a finished design. The page lives on my own site so I have full
 control over how it looks and works; AzuraCast only supplies the audio and the live data.
 
