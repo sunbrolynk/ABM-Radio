@@ -4,5 +4,5 @@ contact_links:
     url: mailto:admin@audiobookmanager.com
     about: If you made a track that's on air and want it taken off, email me and I'll remove it.
   - name: Report a security problem
-    url: https://github.com/sunbrolynk/abm-radio/security/advisories/new
+    url: https://github.com/sunbrolynk/ABM-Radio/security/advisories/new
     about: Report it privately rather than in a public issue.

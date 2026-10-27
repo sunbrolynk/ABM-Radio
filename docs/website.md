@@ -2,7 +2,7 @@
 
 How the public page at [radio.audiobookmanager.com](https://radio.audiobookmanager.com) fits
 together with the stations. The page itself is built in the
-[audiobookmanager.com](https://github.com/sunbrolynk/audiobookmanager.com) repo; this repo only
+[audiobookmanager.com](https://github.com/sunbrolynk/AudioBookManager.com) repo; this repo only
 supplies its data and the plan.
 
 ## Hostnames

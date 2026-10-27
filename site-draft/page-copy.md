@@ -29,7 +29,7 @@ Lofi beats for listening while you sort your audiobooks.
 ABM Lofi plays music its artists have released under open licences, mostly Creative Commons
 Attribution, and nothing else. I check each track's licence when I add it, save a copy of the page
 that grants it, and keep the whole catalog public in the
-[abm-radio repo](https://github.com/sunbrolynk/abm-radio). The [credits page](/credits) lists
+[abm-radio repo](https://github.com/sunbrolynk/ABM-Radio). The [credits page](/credits) lists
 every track that can play and who made it.
 
 **Listen anywhere**
